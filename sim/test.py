@@ -1,16 +1,18 @@
-import cpu, timer
+import machine
+import cpu
 import logging
 logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 
 
-c= cpu.Cpu()
-t= timer.Timer(c)
+m= machine.Machine()
 
-process1= cpu.CpuTask('process1', 2)
-process2= cpu.CpuTask('process2', 2)
+process1= cpu.TaskClass('process1', 2)
+process2= cpu.TaskClass('process2', 2)
 
-c.add_task( process1 )
-t.configure( cpu.CpuTask('interrupt_add_p2', 0, lambda : c.add_task( process2 ) ) , 2)
+m.cpu.add_task( process1 )
+m.set_interrupt( machine.TIMER_INTERRUPT, 0, lambda : m.cpu.add_task(process2))
+m.timer.configure( 2)
 
 for i in range(5):
-    c.step()
+    m.step()
+print m.cpu.tsc

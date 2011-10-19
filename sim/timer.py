@@ -1,30 +1,27 @@
 import logging
-from cpu import Cpu, CpuTask
 
 class AlreadyConfiguredException( Exception ):
     pass
 
 class Timer:
-    def __init__(self, cpu):
-        assert isinstance(cpu, Cpu)
-        self.cpu= cpu
-        self.task= None
-        cpu.add_step_callback( self.step )
+    def __init__(self, cpu, interrupt_number):
+        self.cpu, self.interrupt_number= cpu, interrupt_number
+        self.configured= False
 
     def step(self):
-        if not self.task is None:
+        if self.configured:
             self.time-=1
             if self.time==0:
-                logging.debug("TIMER triggered, interrupting cpu with "+self.task.task_name)
-                self.cpu.interrupt( self.task )
-                self.task= None
+                logging.debug("TIMER triggered")
+                self.cpu.interrupt( self.interrupt_number )
+                self.configured= False
 
-    def configure( self, task, time ):
-        '''executes a given task after TIME cpu steps'''
+    def configure( self, time ):
+        '''interrupts cpu after TIME cpu steps'''
         assert time >= 1    #cannot interrupt cpu before concluding currently executing instruction
-        if not self.task is None:
+        if self.configured:
             raise AlreadyConfiguredException()
         else:
-            logging.debug("TIMER configured to interrupt with "+task.task_name+" in "+str(time)+" clocks")
-            self.task= task
+            logging.debug("TIMER configured to generate interrupt in "+str(time)+" clocks")
             self.time= time
+            self.configured= True
