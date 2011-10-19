@@ -26,7 +26,7 @@ class CpuTask:
 
 class Cpu:
     def __init__(self):
-        self.rtc=0
+        self.tsc=0
         self.tasks= []
         self.step_functions= []
 
@@ -48,7 +48,7 @@ class Cpu:
                 except TaskZeroDuration:
                     logging.info("CPU completed task in 0 clocks: "+self.tasks[0].task_name)
                     self.tasks.pop(0)
-        self.rtc+=1
+        self.tsc+=1
         for f in self.step_functions: #step all functions we were required to, on instantiation
             f()
             
