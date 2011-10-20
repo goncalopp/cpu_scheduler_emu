@@ -1,12 +1,16 @@
 import logging
 
-class TaskConclusionException( Exception ):
+class NoTask( Exception ):
+    pass
+class TaskConclusion( Exception ):
     pass
 class TaskZeroDuration( Exception ):
     pass
 class Multitask( Exception ):
     pass
 class InterruptedInterruption( Exception ):
+    pass
+class NoSuchInterrupt( Exception ):
     pass
 
 
@@ -27,7 +31,7 @@ class TaskInstance:
 
     def step(self):
         if self.concluded:
-            raise Exception("Stepping concluded task")
+            raise Exception("Stepping concluded task. If this ever occurs, cpu code is wrong")
         if self.task_class.task_duration==0:
             self.task_class.on_conclusion()
             raise TaskZeroDuration()
@@ -36,7 +40,7 @@ class TaskInstance:
         if self.done == self.task_class.task_duration:
             self.task_class.on_conclusion()
             self.concluded= True
-            raise TaskConclusionException();
+            raise TaskConclusion();
 
 class Cpu:
     def __init__(self, interrupt_vector=[]):
@@ -52,14 +56,16 @@ class Cpu:
         stepped= False
         while not stepped:
                 try:
-                    self.tasks[0].step()
-                    logging.info(self._debug()+self.tasks[0].task_class.task_name+" (step)")
-                    stepped= True
-                except IndexError:
-                    #no tasks
+                    if len(self.tasks)==0:
+                        raise NoTask("No more tasks to execute on cpu")
+                    else:
+                        self.tasks[0].step()
+                        logging.info(self._debug()+self.tasks[0].task_class.task_name+" (step)")
+                        stepped= True
+                except NoTask:
                     logging.warning(self._debug()+"NO TASK")
                     stepped=True
-                except TaskConclusionException:
+                except TaskConclusion:
                     logging.info(self._debug()+self.tasks[0].task_class.task_name+" (step and conclude)")
                     self.tasks.pop(0)
                     stepped= True
@@ -84,7 +90,7 @@ class Cpu:
             self.tasks.insert(0, task)          # a interrupt is immediatly executed
             logging.debug("CPU interrupt "+str(interrupt_number))
         except IndexError:
-            raise Exception("No such interrupt: "+str(interrupt_number))
+            raise NoSuchInterrupt("No such interrupt: "+str(interrupt_number))
 
     def set_interrupt_handler(self, interrupt_number, cpu_clock_duration, function):
         self.interrupt_vector[ interrupt_number ]= Interrupt( interrupt_number, cpu_clock_duration, function )
