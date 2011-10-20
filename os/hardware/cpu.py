@@ -75,6 +75,6 @@ class Cpu:
         except IndexError:
             raise Exception("No such interrupt: "+str(interrupt_number))
 
-    def set_interrupt(self, interrupt_number, cpu_clock_duration, function):
+    def set_interrupt_handler(self, interrupt_number, cpu_clock_duration, function):
         self.interrupt_vector[ interrupt_number ]= Interrupt( interrupt_number, cpu_clock_duration, function )
     

@@ -11,19 +11,18 @@ DRIVER_SYSCALL_INTERRUPT_DURATION=      0
 PROCESS_END_SYSCALL_INTERRUPT_DURATION= 0
 
 def setup_interrupt_vector(machine):
-    machine.set_interrupt(  SCHEDULER_INTERRUPT,
-                            SCHEDULER_INTERRUPT_DURATION,
-                            scheduler_interrupt_handler)
-    machine.set_interrupt(  DRIVER_IO_INTERUPT,
-                            DRIVER_IO_INTERRUPT_DURATION,
-                            driver_io_interrupt_handler)
-    machine.set_interrupt(  DRIVER_SYSCALL_INTERRUPT,
-                            DRIVER_SYSCALL_INTERRUPT_DURATION,
-                            driver_syscall_interrupt_handler)
-    machine.set_interrupt(  PROCESS_END_SYSCALL_INTERRUPT,
-                            PROCESS_END_SYSCALL_INTERRUPT_DURATION,
-                            process_end_syscall_interrupt_handler)
-
+    machine.set_interrupt_handler(  SCHEDULER_INTERRUPT,
+                                    SCHEDULER_INTERRUPT_DURATION,
+                                    scheduler_interrupt_handler)
+    machine.set_interrupt_handler(  DRIVER_IO_INTERUPT,
+                                    DRIVER_IO_INTERRUPT_DURATION,
+                                    driver_io_interrupt_handler)
+    machine.set_interrupt_handler(  DRIVER_SYSCALL_INTERRUPT,
+                                    DRIVER_SYSCALL_INTERRUPT_DURATION,
+                                    driver_syscall_interrupt_handler)
+    machine.set_interrupt_handler(  PROCESS_END_SYSCALL_INTERRUPT,
+                                    PROCESS_END_SYSCALL_INTERRUPT_DURATION,
+                                    process_end_syscall_interrupt_handler)
 
 
 def scheduler_interrupt_handler():

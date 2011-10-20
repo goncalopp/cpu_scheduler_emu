@@ -1,3 +1,6 @@
+import cpu
+import timer
+
 NUMBER_OF_INTERRUPTS= 6
 
 TIMER_INTERRUPT=     0
@@ -6,18 +9,6 @@ SYSCALL_INTERRUPT_1= 2
 SYSCALL_INTERRUPT_2= 3
 SYSCALL_INTERRUPT_3= 4
 SYSCALL_INTERRUPT_4= 5
-
-
-TIMER_INTERRUPT_DURATION=       0
-IO_INTERRUPT_DURATION=          0
-SYSCALL_INTERRUPT_1_DURATION=   0
-SYSCALL_INTERRUPT_2_DURATION=   0
-SYSCALL_INTERRUPT_3_DURATION=   0
-SYSCALL_INTERRUPT_4_DURATION=   0
-
-import cpu
-import timer
-
 
 class Machine:
     def __init__(self):
@@ -29,6 +20,6 @@ class Machine:
         self.cpu.step()
         self.timer.step()
 
-    def set_interrupt( self, *args, **kwargs ):
-        self.cpu.set_interrupt( *args, **kwargs)
+    def set_interrupt_handler( self, *args, **kwargs ):
+        self.cpu.set_interrupt_handler( *args, **kwargs)
     
