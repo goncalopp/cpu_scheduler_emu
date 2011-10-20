@@ -16,7 +16,7 @@ class TaskClass:
 
 class Interrupt( TaskClass ):
     def __init__(self, interrupt_number, interrupt_duration, on_conclusion):
-        TaskClass.__init__(self, str(interrupt_number)+" [INTERRUPT]", interrupt_duration, on_conclusion)
+        TaskClass.__init__(self, "[INTERRUPT "+str(interrupt_number)+"]", interrupt_duration, on_conclusion)
 
 class TaskInstance:
     def __init__( self, task_class):
@@ -45,26 +45,29 @@ class Cpu:
         self.tsc=0
         self.tasks= []
 
+    def _debug(self):
+        return "CPU (tick "+str(self.tsc)+") "
+
     def step( self ):
         stepped= False
         while not stepped:
                 try:
                     self.tasks[0].step()
-                    logging.info("CPU stepped: "+self.tasks[0].task_class.task_name)
+                    logging.info(self._debug()+self.tasks[0].task_class.task_name+" (step)")
                     stepped= True
                 except IndexError:
                     #no tasks
-                    logging.warning("CPU stepped while executing no task")
+                    logging.warning(self._debug()+"NO TASK")
                     stepped=True
                 except TaskConclusionException:
-                    logging.info("CPU stepped and concluded: "+self.tasks[0].task_class.task_name)
+                    logging.info(self._debug()+self.tasks[0].task_class.task_name+" (step and conclude)")
                     self.tasks.pop(0)
                     stepped= True
                 except TaskZeroDuration:
-                    logging.info("CPU completed task in 0 clocks: "+self.tasks[0].task_class.task_name)
+                    logging.info(self._debug()+self.tasks[0].task_class.task_name+" (completed in 0 ticks)")
                     self.tasks.pop(0)
         self.tsc+=1
-            
+
     def add_task( self, taskclass ):
         if sum(map( lambda t:not isinstance(t.task_class, Interrupt), self.tasks)) > 0:
             raise Multitask("Cannot have more than one task on cpu")
