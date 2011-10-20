@@ -27,3 +27,5 @@ class Machine:
     def get_clock_ticks():
         return self.cpu.tsc()
     
+    def generate_interrupt( number ):
+        self.cpu.interrupt( number )
