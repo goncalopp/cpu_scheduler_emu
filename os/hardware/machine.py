@@ -22,4 +22,7 @@ class Machine:
 
     def set_interrupt_handler( self, *args, **kwargs ):
         self.cpu.set_interrupt_handler( *args, **kwargs)
+
+    def get_clock_ticks():
+        return self.cpu.tsc()
     
