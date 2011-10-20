@@ -14,8 +14,8 @@ interrupt_numbers=  \
 interrupt_durations= \
     {
     "timer":                0,
-    "io":            0,
-    "syscall_io_driver":       0,
+    "io":                   0,
+    "syscall_io_driver":    0,
     "syscall_end_process":  0,
     "syscall_scheduler":    0,
     }
