@@ -1,5 +1,6 @@
 import random
 from timer import InternalTimer
+import logging
 
 class SimultaneousIO( Exception ):
     pass
@@ -9,9 +10,10 @@ class IO( InternalTimer ):
         InternalTimer.__init__(self, cpu, interrupt_number)
         self.io_operation_time= io_operation_time
 
-    def io_operation(self):
+    def io_request(self):
         try:
             self.internalSetTimer( self.io_operation_time )
+            logging.debug("IO request made")
         except AlreadyConfiguredException:
             raise SimultaneousIO()
     

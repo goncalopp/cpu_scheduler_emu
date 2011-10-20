@@ -31,6 +31,7 @@ class InternalTimer:
 class Timer( InternalTimer ):
     def setTimer(self, time):
         self.internalSetTimer( time)
+        logging.debug("Timer set")
         
     def step(self):
         try:
