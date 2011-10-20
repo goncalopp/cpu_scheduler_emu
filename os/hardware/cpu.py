@@ -4,6 +4,10 @@ class TaskConclusionException( Exception ):
     pass
 class TaskZeroDuration( Exception ):
     pass
+class Multitask( Exception ):
+    pass
+class InterruptedInterruption( Exception ):
+    pass
 
 
 class TaskClass:
@@ -62,12 +66,16 @@ class Cpu:
         self.tsc+=1
             
     def add_task( self, taskclass ):
+        if sum(map( lambda t:not isinstance(t.task_class, Interrupt), self.tasks)) > 0:
+            raise Multitask("Cannot have more than one task on cpu")
         logging.debug("CPU added task of TaskClass "+taskclass.task_name)
         assert isinstance(taskclass, TaskClass)
         task= TaskInstance( taskclass )
         self.tasks.append(task)
 
     def interrupt( self, interrupt_number ):
+        if sum(map( lambda t:isinstance(t.task_class, Interrupt), self.tasks)) > 0:
+            raise InterruptedInterruption("Cannot have multiple interrupts running")
         try:
             task= TaskInstance( self.interrupt_vector[ interrupt_number ] )
             self.tasks.insert(0, task)          # a interrupt is immediatly executed
