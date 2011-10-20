@@ -8,7 +8,6 @@ import cpu
 
 my_pc= Machine( 100 )
 my_os= OS( my_pc )
-my_os.setup_interrupt_vector()
 
 while True:
     try:

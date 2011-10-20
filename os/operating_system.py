@@ -1,34 +1,37 @@
 import machine
-
-SCHEDULER_INTERRUPT=            machine.TIMER_INTERRUPT
-DRIVER_IO_INTERUPT=             machine.IO_INTERRUPT
-DRIVER_SYSCALL_INTERRUPT=       machine.SYSCALL_INTERRUPT_1
-PROCESS_END_SYSCALL_INTERRUPT=  machine.SYSCALL_INTERRUPT_2
-
-SCHEDULER_INTERRUPT_DURATION=           0
-DRIVER_IO_INTERRUPT_DURATION=           0
-DRIVER_SYSCALL_INTERRUPT_DURATION=      0
-PROCESS_END_SYSCALL_INTERRUPT_DURATION= 0
+from io_driver import IODriver
+from timer_driver import TimerDriver
+from scheduler import Scheduler
+import interrupts 
 
 class OS:
     def __init__(self, machine):
         self.machine= machine
+        self.pid_counter=10
+        self._initialize_subsystems()
+        self._initialize_interrupt_handlers()
 
-    def setup_interrupt_vector(self):
-        self.machine.set_interrupt_handler(  SCHEDULER_INTERRUPT, SCHEDULER_INTERRUPT_DURATION, self.scheduler_interrupt_handler)
-        self.machine.set_interrupt_handler(  DRIVER_IO_INTERUPT, DRIVER_IO_INTERRUPT_DURATION, self.driver_io_interrupt_handler)
-        self.machine.set_interrupt_handler(  DRIVER_SYSCALL_INTERRUPT, DRIVER_SYSCALL_INTERRUPT_DURATION, self.driver_syscall_interrupt_handler)
-        self.machine.set_interrupt_handler(  PROCESS_END_SYSCALL_INTERRUPT, PROCESS_END_SYSCALL_INTERRUPT_DURATION, self.process_end_syscall_interrupt_handler)
+    def _initialize_subsystems(self):
+        self.io_driver=     IODriver( self )
+        self.timer_driver=  TimerDriver( self )
+        self.scheduler=     Scheduler( self )
+        self.timer_driver.set_callback( self.scheduler.schedule )   #execute scheduler on timer interrupt
 
+    def _initialize_interrupt_handlers(self):
+        my_interrupt_handlers= [
+                            self.timer_driver.timer_interrupt_handler,
+                            self.io_driver.io_interrupt_handler,
+                            self.io_driver.request_io,
+                            self.scheduler.end_process_interrupt_handler,
+                            self.scheduler.schedule,
+                            ]
+        mih, il= my_interrupt_handlers, interrupts.interrupt_list
+        interrupts.InterruptHandlerGroup( self, self.machine, dict(zip(il, mih)))
 
-    def scheduler_interrupt_handler(self):
-        pass
+    def generate_pid(self):
+        n= self.pid_counter
+        self.pidcounter+=1
+        return n
 
-    def process_end_syscall_interrupt_handler(self):
-        pass
-
-    def driver_syscall_interrupt_handler(self):
-        pass
-
-    def driver_io_interrupt_handler(self):
-        pass
+    def get_system_ticks(self):
+        return self.machine.get_clock_ticks()
