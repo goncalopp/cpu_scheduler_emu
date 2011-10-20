@@ -36,6 +36,6 @@ class Timer( InternalTimer ):
         try:
             self.internalStep()
         except InternalTimerEvent:
-            logging.debug("TIMER triggered")
+            logging.debug("TIMER  interrupt triggered")
 
 

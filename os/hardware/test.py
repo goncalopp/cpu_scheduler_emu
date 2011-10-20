@@ -4,7 +4,7 @@ import logging
 logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 
 
-m= machine.Machine()
+m= machine.Machine( 100 )
 
 process1= cpu.TaskClass('process1', 2)
 process2= cpu.TaskClass('process2', 2)

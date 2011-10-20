@@ -1,5 +1,6 @@
 import cpu
 import timer
+import io
 
 NUMBER_OF_INTERRUPTS= 6
 
@@ -11,14 +12,16 @@ SYSCALL_INTERRUPT_3= 4
 SYSCALL_INTERRUPT_4= 5
 
 class Machine:
-    def __init__(self):
+    def __init__(self, io_operation_duration):
         initial_interrupt_vector= [cpu.Interrupt(n, 0, lambda:None) for n in range(NUMBER_OF_INTERRUPTS)]
         self.cpu= cpu.Cpu( initial_interrupt_vector )
         self.timer= timer.Timer( self.cpu, TIMER_INTERRUPT )
+        self.io= io.IO( self.cpu, IO_INTERRUPT, io_operation_duration)
         
     def step(self):
         self.cpu.step()
         self.timer.step()
+        self.io.step()
 
     def set_interrupt_handler( self, *args, **kwargs ):
         self.cpu.set_interrupt_handler( *args, **kwargs)
