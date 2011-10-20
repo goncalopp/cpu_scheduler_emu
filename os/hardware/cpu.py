@@ -62,9 +62,9 @@ class Cpu:
                         self.tasks[0].step()
                         logging.info(self._debug()+self.tasks[0].task_class.task_name+" (step)")
                         stepped= True
-                except NoTask:
-                    logging.warning(self._debug()+"NO TASK")
-                    stepped=True
+                #except NoTask:
+                #    logging.warning(self._debug()+"NO TASK")
+                #    stepped=True
                 except TaskConclusion:
                     logging.info(self._debug()+self.tasks[0].task_class.task_name+" (step and conclude)")
                     self.tasks.pop(0)

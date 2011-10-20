@@ -13,6 +13,8 @@ m.cpu.add_task( process1 )
 m.set_interrupt_handler( machine.TIMER_INTERRUPT, 0, lambda : m.cpu.add_task(process2))
 m.timer.setTimer( 2)
 
-for i in range(5):
-    m.step()
-print m.cpu.tsc
+while True:
+    try:
+        m.step()
+    except cpu.NoTask:
+        break
