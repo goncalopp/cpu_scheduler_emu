@@ -1,4 +1,5 @@
 import logging
+log= logging.getLogger('hardware')
 
 class AlreadyConfiguredException( Exception ):
     pass
@@ -31,12 +32,12 @@ class InternalTimer:
 class Timer( InternalTimer ):
     def setTimer(self, time):
         self.internalSetTimer( time)
-        logging.debug("Timer set")
+        log.debug("timer set")
         
     def step(self):
         try:
             self.internalStep()
         except InternalTimerEvent:
-            logging.debug("TIMER  interrupt triggered")
+            log.debug("timer interrupt was triggered ("+str(self.interrupt_number)+")")
 
 

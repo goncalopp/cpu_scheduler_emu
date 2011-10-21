@@ -1,8 +1,5 @@
 import machine
 import cpu
-import logging
-logging.basicConfig(format="%(message)s", level=logging.DEBUG)
-
 
 m= machine.Machine( 100 )
 

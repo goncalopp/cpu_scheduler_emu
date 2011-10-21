@@ -1,6 +1,7 @@
 import random
 from timer import InternalTimer
 import logging
+log= logging.getLogger('hardware')
 
 class SimultaneousIO( Exception ):
     pass
@@ -13,7 +14,7 @@ class IO( InternalTimer ):
     def io_request(self):
         try:
             self.internalSetTimer( self.io_operation_time )
-            logging.debug("IO request made")
+            log.debug("request made")
         except AlreadyConfiguredException:
             raise SimultaneousIO()
     
@@ -21,4 +22,4 @@ class IO( InternalTimer ):
         try:
             self.internalStep()
         except InternalTimerEvent:
-            logging.debug("IO interrupt triggered")
+            log.debug("IO interrupt triggered ("+str(self.interrupt_number)+")")

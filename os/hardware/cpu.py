@@ -1,4 +1,5 @@
 import logging
+log= logging.getLogger('hardware')
 
 class NoTask( Exception ):
     pass
@@ -50,7 +51,7 @@ class Cpu:
         self.tasks= []
 
     def _debug(self):
-        return "CPU (tick "+str(self.tsc)+") "
+        return "(tick "+str(self.tsc)+") "
 
     def step( self ):
         stepped= False
@@ -60,24 +61,24 @@ class Cpu:
                         raise NoTask("No more tasks to execute on cpu")
                     else:
                         self.tasks[0].step()
-                        logging.info(self._debug()+self.tasks[0].task_class.task_name+" (step)")
+                        log.info(self._debug()+self.tasks[0].task_class.task_name+" (step)")
                         stepped= True
                 #except NoTask:
-                #    logging.warning(self._debug()+"NO TASK")
+                #    log.warning(self._debug()+"NO TASK")
                 #    stepped=True
                 except TaskConclusion:
-                    logging.info(self._debug()+self.tasks[0].task_class.task_name+" (step and conclude)")
+                    log.info(self._debug()+self.tasks[0].task_class.task_name+" (step and conclude)")
                     self.tasks.pop(0)
                     stepped= True
                 except TaskZeroDuration:
-                    logging.info(self._debug()+self.tasks[0].task_class.task_name+" (completed in 0 ticks)")
+                    log.info(self._debug()+self.tasks[0].task_class.task_name+" (completed in 0 ticks)")
                     self.tasks.pop(0)
         self.tsc+=1
 
     def add_task( self, taskclass ):
         if sum(map( lambda t:not isinstance(t.task_class, Interrupt), self.tasks)) > 0:
             raise Multitask("Cannot have more than one task on cpu")
-        logging.debug("CPU added task of TaskClass "+taskclass.task_name)
+        log.debug("added task of TaskClass "+taskclass.task_name)
         assert isinstance(taskclass, TaskClass)
         task= TaskInstance( taskclass )
         self.tasks.append(task)
@@ -88,7 +89,7 @@ class Cpu:
         try:
             task= TaskInstance( self.interrupt_vector[ interrupt_number ] )
             self.tasks.insert(0, task)          # a interrupt is immediatly executed
-            logging.debug("CPU interrupt "+str(interrupt_number))
+            log.debug("generated interrupt "+str(interrupt_number))
         except IndexError:
             raise NoSuchInterrupt("No such interrupt: "+str(interrupt_number))
 

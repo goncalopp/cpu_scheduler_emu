@@ -1,3 +1,10 @@
+import logging
+log= logging.getLogger('hardware')
+formatter = logging.Formatter('%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s')
+hdlr = logging.FileHandler('hardware.log.tsv', mode="w")
+hdlr.setFormatter(formatter)
+log.addHandler(hdlr) 
+log.setLevel(logging.DEBUG)
 import cpu, timer, io_device
 
 NUMBER_OF_INTERRUPTS= 6
@@ -28,4 +35,5 @@ class Machine:
         return self.cpu.tsc()
     
     def generate_interrupt( number ):
+        log.debug("generated interrupt"+str(number))
         self.cpu.interrupt( number )
