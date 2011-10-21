@@ -1,6 +1,6 @@
 import logging
 log= logging.getLogger('os')
-formatter = logging.Formatter('%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s')
+formatter = logging.Formatter('%(asctime)s\t%(levelname)s\t%(name)s\t%(module)s\t%(funcName)s\t%(message)s')
 hdlr = logging.FileHandler('os.log.tsv', mode="w")
 hdlr.setFormatter(formatter)
 log.addHandler(hdlr)

@@ -1,6 +1,7 @@
+import time
 import logging
 log= logging.getLogger('hardware')
-formatter = logging.Formatter('%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s')
+formatter = logging.Formatter('%(asctime)s\t%(levelname)s\t%(name)s\t%(module)s\t%(funcName)s\t%(message)s')
 hdlr = logging.FileHandler('hardware.log.tsv', mode="w")
 hdlr.setFormatter(formatter)
 log.addHandler(hdlr) 
@@ -24,6 +25,7 @@ class Machine:
         self.io= io_device.IO( self.cpu, IO_INTERRUPT, io_operation_duration)
         
     def step(self):
+        #time.sleep(0.01)    #for making sense of log files
         self.cpu.step()
         self.timer.step()
         self.io.step()

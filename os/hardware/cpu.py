@@ -54,10 +54,12 @@ class Cpu:
         return "(tick "+str(self.tsc)+") "
 
     def step( self ):
+        log.info("-----------------CPU STEP START-----------------")
         stepped= False
         while not stepped:
                 try:
                     if len(self.tasks)==0:
+                        log.debug("No task on cpu")
                         raise NoTask("No more tasks to execute on cpu")
                     else:
                         self.tasks[0].step()
