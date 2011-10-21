@@ -6,7 +6,7 @@ hdlr = logging.FileHandler('hardware.log.tsv', mode="w")
 hdlr.setFormatter(formatter)
 log.addHandler(hdlr) 
 log.setLevel(logging.DEBUG)
-import cpu, timer, io_device
+import cpu, timer, io_device, ram
 
 NUMBER_OF_INTERRUPTS= 6
 
@@ -20,7 +20,8 @@ SYSCALL_INTERRUPT_4= 5
 class Machine:
     def __init__(self, io_operation_duration):
         initial_interrupt_vector= [cpu.Interrupt(n, 0, lambda:None) for n in range(NUMBER_OF_INTERRUPTS)]
-        self.cpu= cpu.Cpu( initial_interrupt_vector )
+        self.memory= ram.RAM( 100*1024 )
+        self.cpu= cpu.Cpu( self.memory )
         self.timer= timer.Timer( self.cpu, TIMER_INTERRUPT )
         self.io= io_device.IO( self.cpu, IO_INTERRUPT, io_operation_duration)
         
