@@ -1,3 +1,5 @@
+import logging
+log= logging.getLogger('os')
 import machine
 
 interrupt_list= ["timer","io", "syscall_io_driver", "syscall_end_process", "syscall_scheduler"]
@@ -27,6 +29,7 @@ class InterruptHandlerGroup:
     '''registers interrupt handlers, mapping them to OS functions'''
     def __init__(self, os, machine, os_functions):
         for name in interrupt_list:
+            log.debug("registering interrupt handler: "+name)
             try:
                 os_f= os_functions[name]
                 n= interrupt_numbers[name]

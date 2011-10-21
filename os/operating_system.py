@@ -1,3 +1,10 @@
+import logging
+log= logging.getLogger('os')
+formatter = logging.Formatter('%(asctime)s\t%(levelname)s\t%(module)s\t%(message)s')
+hdlr = logging.FileHandler('os.log.tsv', mode="w")
+hdlr.setFormatter(formatter)
+log.addHandler(hdlr)
+log.setLevel(logging.DEBUG)
 import machine
 from io_driver import IODriver
 from timer_driver import TimerDriver
@@ -10,6 +17,7 @@ class OS:
         self.pid_counter=10
         self._initialize_subsystems()
         self._initialize_interrupt_handlers()
+        log.debug("OS initialized")
 
     def _initialize_subsystems(self):
         self.io_driver=     IODriver( self )
