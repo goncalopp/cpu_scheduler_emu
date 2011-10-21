@@ -4,7 +4,8 @@ from cpu_registers import *
 import logging
 log= logging.getLogger('hardware')
 
-
+class Poweroff( Exception ):
+    pass
 
 class Cpu:
     def __init__(self, memory):
@@ -40,10 +41,13 @@ class Cpu:
 
     def execute_instruction(self, i):
         assert isinstance(i, Instruction)
-        if i.op==NOOP:
+        op, a1= i.op, i.a1
+        if op==NOOP:
             pass
-        elif i.op==INT:
-            self.interrupt(i.a1)
+        elif op==INT:
+            self.interrupt(a1)
+        elif op==OFF:
+            raise Poweroff()
         else:
             raise UnknownOpcode()
         self.registers.PC+=1

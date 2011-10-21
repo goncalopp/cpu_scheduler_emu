@@ -3,8 +3,9 @@ class UnknownOpcode( Exception ):
 
 opcodes= \
     {
-    "NOOP": 0,
-    "INT": 1,
+    "NOOP": 0,  #no operation
+    "INT": 1,   #generate software interrupt [a1]
+    "OFF": 2,   #"turn system off" (python exception) 
     }
     
 for k,v in opcodes.items():

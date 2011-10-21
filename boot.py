@@ -8,10 +8,9 @@ import cpu
 
 my_pc= Machine( 100 )
 my_os= OS( my_pc )
-
 while True:
     try:
         my_pc.step()
-    except cpu.NoTask:
-        print "execution finished (cpu has no task)"
+    except cpu.Poweroff:
+        print "execution finished"
         break

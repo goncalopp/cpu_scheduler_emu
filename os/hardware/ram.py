@@ -1,4 +1,4 @@
-from cpu_instruction import Instruction, NOOP
+from cpu_instruction import Instruction, OFF
 import cpu_interrupt
 import logging
 log= logging.getLogger('hardware')
@@ -16,7 +16,7 @@ RAM CONTENTS:
 class RAM:
     def __init__(self, size):
         assert size >= 100*K
-        self.contents= [ Instruction(NOOP, 0) for i in xrange(size) ]
+        self.contents= [ Instruction(OFF, 0) for i in xrange(size) ]
 
     def read(self, position):
         return self.contents[position]
