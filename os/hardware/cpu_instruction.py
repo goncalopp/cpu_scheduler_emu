@@ -8,6 +8,11 @@ opcodes= \
     "OFF": 2,   #"turn system off" (python exception) 
     }
 
+class Program:
+    def __init__(self, instructions):
+        assert all(map(isinstance(x, Instruction), instructions))
+        self.instructions= instructions
+
 class Instruction:
     def __init__(self, op, a1):
         self.op, self.a1= op, a1
@@ -26,6 +31,11 @@ def instructionFromString(s):
     except KeyError:
             raise UnknownOpcode()
 
+def programFromString(s):
+    instructions=[]
+    for line in s.split("\n"):
+        instructions.append( instructionFromString(line) )
+    return Program( instructions)
 
 opcodes_reverse= dict((v,k) for k, v in opcodes.items())    #construction dictionary from opcode to opname
 for k,v in opcodes.items():                   #add opcodes as local variables
