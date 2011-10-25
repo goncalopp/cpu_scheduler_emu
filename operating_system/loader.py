@@ -38,4 +38,4 @@ class Loader:
         except KeyError:
             raise NoSuchProcess(str(pid))
         program_address= pcb.start_address
-        os.memory_allocator.free( program_address )
+        self.os.memory_allocator.free( program_address )
