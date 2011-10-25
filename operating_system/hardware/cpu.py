@@ -13,7 +13,7 @@ class Cpu:
         self.memory= memory
 
     def _debug(self):
-        return "(tick "+str(self.registers.TSC)+") "
+        return str(self.registers)
 
     def step( self ):
         log.info("-----------------CPU STEP START-----------------")
@@ -23,18 +23,18 @@ class Cpu:
                 #executing interruption
                 try:
                     self.registers.INT.step()
-                    log.info(self._debug()+self.registers.INT.task_class.task_name+" (step)")
+                    log.info(self._debug()+self.registers.INT.task_class.task_name+" interrupt (step)")
                     stepped= True
                 except TaskConclusion:
-                    log.info(self._debug()+self.registers.INT.task_class.task_name+" (step and conclude)")
+                    log.info(self._debug()+self.registers.INT.task_class.task_name+" (interrupt step and conclude)")
                     self.tasks.pop(0)
                     stepped= True
                 except TaskZeroDuration:
-                    log.info(self._debug()+self.registers.INT.task_class.task_name+" (completed in 0 ticks)")
+                    log.info(self._debug()+self.registers.INT.task_class.task_name+" (interrupt completed in 0 ticks)")
                     self.registers.INT= None
             else:
                 #not executing interruption
-                log.info(self._debug()+" PC="+str(self.registers.PC))
+                log.info(self._debug())
                 self.execute_instruction( self.memory.read( self.registers.PC ) )
                 stepped=True
         self.registers.TSC+=1

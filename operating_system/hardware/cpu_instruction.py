@@ -23,6 +23,8 @@ class Program:
         self.start_offset= start_offset #start_offset marks the start of the "code segment" (and end of "data segment") 
     def __len__(self):
         return len(self.instructions)
+    def __repr__(self):
+        return "\n".join(map(str, self.instructions))
 
 class Instruction:
     def __init__(self, op, *arguments):
@@ -46,7 +48,7 @@ def instructionFromString(s):
             op= opcodes[op] #was operation given as "assembly"?
         except KeyError:
             op= int(op)     #was operation given as numbers?
-        assert len(l)-1 == number_of_arguments[op]
+        #assert len(l)-1 == number_of_arguments[op]
         return Instruction( op, *args )
     except:
         raise InvalidInstruction(s)
