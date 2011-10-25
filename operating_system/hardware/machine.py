@@ -23,7 +23,7 @@ class Machine:
         self.memory= ram.RAM( 100*1024 )
         self.cpu= cpu.Cpu( self.memory )
         self.timer= timer.Timer( self.cpu, TIMER_INTERRUPT )
-        self.io= io_device.IO( self.cpu, IO_INTERRUPT, io_operation_duration)
+        self.io= io_device.IO( self.cpu, IO_INTERRUPT)
         
     def step(self):
         #time.sleep(0.01)    #for making sense of log files

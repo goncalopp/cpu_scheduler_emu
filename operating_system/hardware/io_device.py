@@ -3,13 +3,18 @@ from timer import InternalTimer
 import logging
 log= logging.getLogger('hardware')
 
+DEFAULT_IO_OPERATION_TIME= 100
+
 class SimultaneousIO( Exception ):
     pass
 
 class IO( InternalTimer ):
-    def __init__(self, cpu, interrupt_number, io_operation_time):
+    def __init__(self, cpu, interrupt_number):
         InternalTimer.__init__(self, cpu, interrupt_number)
-        self.io_operation_time= io_operation_time
+        self.io_operation_time= DEFAULT_IO_OPERATION_TIME
+
+    def set_io_operation_time( n ):
+        self.io_operation_time= n
 
     def io_request(self):
         try:
