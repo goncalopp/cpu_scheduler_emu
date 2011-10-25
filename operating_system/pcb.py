@@ -10,7 +10,7 @@ class PCB:
         self.system_time=0                  #      "            system mode
 
     def __repr__(self):
-        return "PCB( PID="+self.pid+" )"
+        return "PCB( PID="+str(self.pid)+" )"
 
     def renice( n ):
         self.nice=n
