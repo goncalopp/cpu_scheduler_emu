@@ -12,6 +12,8 @@ class Program:
     def __init__(self, instructions):
         assert all(map(lambda x:isinstance(x, Instruction), instructions))
         self.instructions= instructions
+    def __len__(self):
+        return len(self.instructions)
 
 class Instruction:
     def __init__(self, op, a1=0):
