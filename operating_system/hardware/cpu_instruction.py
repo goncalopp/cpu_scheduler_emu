@@ -14,7 +14,7 @@ class Program:
         self.instructions= instructions
 
 class Instruction:
-    def __init__(self, op, a1):
+    def __init__(self, op, a1=0):
         self.op, self.a1= op, a1
     def __repr__(self):
         try:
