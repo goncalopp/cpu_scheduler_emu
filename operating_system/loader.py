@@ -17,7 +17,7 @@ class Loader:
 
     def _generate_pid(self):
         n= self.pid_counter
-        self.pidcounter+=1
+        self.pid_counter+=1
         return n
 
     def load(self, program):
@@ -26,7 +26,7 @@ class Loader:
         program.instructions.append( Instruction(INT, END_PROCESS_INTERRUPT) )
         pid=  self._generate_pid()
         size= len(program)
-        mem= os.memory_allocator.allocate( size)
+        mem= self.os.memory_allocator.allocate( size)
         pcb= PCB(pid, mem, size)
         #add pcb to system state
         self.os.pcbs[pid]= pcb

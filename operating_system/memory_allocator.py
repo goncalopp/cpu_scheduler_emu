@@ -72,14 +72,14 @@ class MemoryAllocator:
         self.bl= RamBlockList( PROGRAM_MEMORY_START, len(self.os.machine.ram))
         self.allocated_blocks=[]
 
-    def allocate( n_cells):
+    def allocate( self, n_cells):
         '''returns start of allocated block'''
-        allocated= self.bl.remove( n_cells).start
+        allocated= self.bl.remove( n_cells)
         self.allocated_blocks.append( allocated )
         return allocated.start
 
-    def free( block_start ):
-        allocateds= filter(lambda x: x.start== block_start)
+    def free( self, block_start ):
+        allocateds= filter(lambda x: x.start== block_start, self.allocated_blocks)
         if len(allocateds)!=1:
             raise FreeUnallocatedMemory()
         self.bl.insert( allocateds[0] )
