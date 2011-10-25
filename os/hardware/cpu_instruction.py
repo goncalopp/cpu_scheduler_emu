@@ -24,7 +24,12 @@ class Instruction:
 
 def instructionFromString(s):
     try:
-        op, a1= s.split("\t")
+        l= s.split("\t")
+        op= l[0]
+        if len(l)==1:
+            a1= 0
+        else:
+            a1= l[1]
         a1= int(a1)
         op= opcodes[op]
         return Instruction(op, a1)
