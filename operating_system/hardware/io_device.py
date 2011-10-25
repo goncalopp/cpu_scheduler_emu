@@ -13,7 +13,7 @@ class IO( InternalTimer ):
         InternalTimer.__init__(self, cpu, interrupt_number)
         self.io_operation_time= DEFAULT_IO_OPERATION_TIME
 
-    def set_io_operation_time( n ):
+    def set_io_operation_time( self, n ):
         self.io_operation_time= n
 
     def io_request(self):

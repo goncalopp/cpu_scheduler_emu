@@ -7,7 +7,7 @@ import config
 import program_generation
 
 cfg= config.configFromFile("configs/example_config.cfg")
-programs= program_generation.generateProgramsFromConfig(c1)
+programs= program_generation.generateProgramsFromConfig(cfg)
 
 
 my_pc= Machine()
