@@ -11,6 +11,9 @@ class NotEnoughRamInBlockList( Exception ):
 class FreeUnallocatedMemory( Exception ):
     pass
 
+class OutOfRam( Exception ):
+    pass
+
 class RamBlock:
     '''represents a ram block (a start and end address'''
     def __init__(self, start_address, end_address):
@@ -74,8 +77,11 @@ class MemoryAllocator:
 
     def allocate( self, n_cells):
         '''returns start of allocated block'''
-        allocated= self.bl.remove( n_cells)
-        self.allocated_blocks.append( allocated )
+        try:
+            allocated= self.bl.remove( n_cells)
+            self.allocated_blocks.append( allocated )
+        except NotEnoughRamInBlockList:
+            raise OutOfRam()
         return allocated.start
 
     def free( self, block_start ):
