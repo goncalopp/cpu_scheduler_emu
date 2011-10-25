@@ -43,3 +43,6 @@ class Kernel:
 
     def get_system_ticks(self):
         return self.machine.get_clock_ticks()
+
+    def currently_executing_pcb(self):
+        return self.scheduler.currently_executing_pcb()
