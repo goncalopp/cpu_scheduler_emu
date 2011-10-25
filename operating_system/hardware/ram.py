@@ -1,4 +1,4 @@
-from cpu_instruction import Instruction, OFF
+from cpu_instruction import Instruction, Program, OFF
 import cpu_interrupt
 import logging
 log= logging.getLogger('hardware')
@@ -21,14 +21,19 @@ class RAM:
     def read(self, position):
         return self.contents[position]
 
-    def write(self, instruction, position):
+    def write(self, position, instruction):
         assert isinstance(instruction, Instruction)
         self.contents[position]=instruction
 
     def _write_interrupt_handler(self, n, ih):
         assert type(n)==int
         assert isinstance(ih, cpu_interrupt.Interrupt)
-        self.write( Instruction(ih, 0), n ) 
+        self.write( n, Instruction(ih, 0) )
+
+    def writeProgram(self, offset, program):
+        assert isinstance(program, Program)
+        for i,instruction in enumerate(program.instructions):
+            self.write(offset+i, instruction)
 
     def _read_interrupt_handler(self, n):
         assert type(n)==int
