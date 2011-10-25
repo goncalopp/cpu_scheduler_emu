@@ -66,11 +66,10 @@ class RamBlockList:
 
 class MemoryAllocator:
     '''Ineficient but correct'''
-    def __init__(self, os, ram):
+    def __init__(self, os):
         log.debug("initializing memory allocator")
         self.os= os
-        self.ram= ram
-        self.bl= RamBlockList( PROGRAM_MEMORY_START, len(ram))
+        self.bl= RamBlockList( PROGRAM_MEMORY_START, len(self.os.machine.ram))
         self.allocated_blocks=[]
 
     def allocate( n_cells):

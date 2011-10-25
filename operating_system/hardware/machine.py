@@ -17,11 +17,13 @@ SYSCALL_INTERRUPT_2= 3
 SYSCALL_INTERRUPT_3= 4
 SYSCALL_INTERRUPT_4= 5
 
+MEMORY_SIZE= 100*ram.K
+
 class Machine:
     def __init__(self):
         initial_interrupt_vector= [cpu.Interrupt(n, 0, lambda:None) for n in range(NUMBER_OF_INTERRUPTS)]
-        self.memory= ram.RAM( 100*1024 )
-        self.cpu= cpu.Cpu( self.memory )
+        self.ram= ram.RAM( MEMORY_SIZE )
+        self.cpu= cpu.Cpu( self.ram )
         self.timer= timer.Timer( self.cpu, TIMER_INTERRUPT )
         self.io= io_device.IO( self.cpu, IO_INTERRUPT)
         
