@@ -14,6 +14,9 @@ class Cpu:
 
     def _debug(self):
         return str(self.registers)
+        
+    def _rel(self, n):
+        return self.registers.PC + n
 
     def step( self ):
         log.info("-----------------CPU STEP START-----------------")
@@ -35,12 +38,13 @@ class Cpu:
             else:
                 #not executing interruption
                 log.info(self._debug())
-                self.execute_instruction( self.memory.read( self.registers.PC ) )
+                self.execute_instruction( self.memory[self.registers.PC] )
                 stepped=True
         self.registers.TSC+=1
 
     def execute_instruction(self, i):
         assert isinstance(i, Instruction)
+        log.debug("executing instruction: "+str(i))
         op, args= i.op, i.args
         if op==NOOP:
             pass
@@ -48,6 +52,19 @@ class Cpu:
             self.interrupt(args[0])
         elif op==OFF:
             raise Poweroff()
+        elif op==JNZ:
+            if self.registers.EAX!=0:
+                self.registers.PC+= args[0] - 1 # -1 since we will increment PC after the JMP
+        elif op==LOAD:
+            self.registers.EAX= args[0]
+        elif op==LOAD_REL:
+            self.registers.EAX= self.memory[self._rel(args[0])].op
+        elif op==STOR:
+            self.memory[ self._rel(args[0]) ]=  Instruction(self.registers.EAX)
+        elif op==ADD:
+            self.registers.EAX+= args[0]
+        elif op==ADD_REL:
+            self.registers.EAX+= self.memory.read( self._rel(args[0]) ).op
         else:
             raise InvalidInstruction()
         self.registers.PC+=1

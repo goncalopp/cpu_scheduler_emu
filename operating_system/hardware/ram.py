@@ -45,4 +45,8 @@ class RAM:
 
     def __len__(self):
         return len(self.contents)
-    
+    def __getitem__(self, i):
+        return self.contents[i]
+    def __setitem__(self, i, x):
+        assert isinstance(x, Instruction)
+        self.contents[i]=x
