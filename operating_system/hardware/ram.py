@@ -6,6 +6,8 @@ log= logging.getLogger('hardware')
 K=1024
 M= 1024*K
 
+PROGRAM_MEMORY_START= 1K
+
 '''
 RAM CONTENTS:
 0    - 127 :    interrupt vector
@@ -39,5 +41,8 @@ class RAM:
         assert type(n)==int
         ih= self.read(n).op
         assert isinstance(ih, cpu_interrupt.Interrupt)
-        return ih 
+        return ih
+
+    def __len__(self):
+        return len(self.contents)
     
