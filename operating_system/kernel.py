@@ -5,13 +5,13 @@ hdlr = logging.FileHandler('os.log.tsv', mode="w")
 hdlr.setFormatter(formatter)
 log.addHandler(hdlr)
 log.setLevel(logging.DEBUG)
-import machine
+from hardware import machine
 from io_driver import IODriver
 from timer_driver import TimerDriver
 from scheduler import Scheduler
 import interrupts 
 
-class OS:
+class Kernel:
     def __init__(self, machine):
         self.machine= machine
         self.pid_counter=10

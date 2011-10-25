@@ -1,6 +1,6 @@
 import logging
 log= logging.getLogger('os')
-import machine
+from hardware import machine
 
 interrupt_list= ["timer","io", "syscall_io_driver", "syscall_end_process", "syscall_scheduler"]
 
