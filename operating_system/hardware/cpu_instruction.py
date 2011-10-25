@@ -10,7 +10,7 @@ opcodes= \
 
 class Program:
     def __init__(self, instructions):
-        assert all(map(isinstance(x, Instruction), instructions))
+        assert all(map(lambda x:isinstance(x, Instruction), instructions))
         self.instructions= instructions
 
 class Instruction:
