@@ -33,10 +33,13 @@ def instructionFromString(s):
         else:
             a1= l[1]
         a1= int(a1)
-        op= opcodes[op]
-        return Instruction(op, a1)
-    except KeyError:
-            raise UnknownOpcode()
+        try:
+            op= opcodes[op] #was operation given as "assembly"?
+        except KeyError:
+            op= int(op)     #was operation given as numbers?
+        return Instruction( op, a1 )
+    except:
+        raise UnknownOpcode(s)
 
 def programFromString(s):
     instructions=[]
