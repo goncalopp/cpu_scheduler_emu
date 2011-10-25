@@ -41,15 +41,15 @@ class Cpu:
 
     def execute_instruction(self, i):
         assert isinstance(i, Instruction)
-        op, a1= i.op, i.a1
+        op, args= i.op, i.args
         if op==NOOP:
             pass
         elif op==INT:
-            self.interrupt(a1)
+            self.interrupt(args[0])
         elif op==OFF:
             raise Poweroff()
         else:
-            raise UnknownOpcode()
+            raise InvalidInstruction()
         self.registers.PC+=1
         
     def interrupt( self, interrupt_number ):

@@ -1,4 +1,4 @@
-class UnknownOpcode( Exception ):
+class InvalidInstruction( Exception ):
     pass
 
 opcodes= \
@@ -8,38 +8,48 @@ opcodes= \
     "OFF": 2,   #"turn system off" (python exception) 
     }
 
+#number of arguments of each instruction
+number_of_arguments= \
+    {
+    0:0,
+    1:1,
+    2:0,
+    }
+
 class Program:
-    def __init__(self, instructions):
+    def __init__(self, instructions, start_offset=0):
         assert all(map(lambda x:isinstance(x, Instruction), instructions))
         self.instructions= instructions
+        self.start_offset= start_offset #start_offset marks the start of the "code segment" (and end of "data segment") 
     def __len__(self):
         return len(self.instructions)
 
 class Instruction:
-    def __init__(self, op, a1=0):
-        self.op, self.a1= op, a1
+    def __init__(self, op, *arguments):
+        self.op, self.args= op, arguments    #store arguments in list
     def __repr__(self):
         try:
-            return "\t".join( (opcodes_reverse[self.op], str(self.a1)) )
+            op= opcodes_reverse[self.op]
         except KeyError:
-            raise UnknownOpcode()
+            try:
+                op= str(int(self.op))
+            except:
+                raise InvalidInstruction(self.op)
+        return "\t".join( [op]+map(str,self.args))
 
 def instructionFromString(s):
     try:
         l= s.split("\t")
-        op= l[0]
-        if len(l)==1:
-            a1= 0
-        else:
-            a1= l[1]
-        a1= int(a1)
+        op, args= l[0], l[1:]
+        args= map(int, args)
         try:
             op= opcodes[op] #was operation given as "assembly"?
         except KeyError:
             op= int(op)     #was operation given as numbers?
-        return Instruction( op, a1 )
+        assert len(l)-1 == number_of_arguments[op]
+        return Instruction( op, *args )
     except:
-        raise UnknownOpcode(s)
+        raise InvalidInstruction(s)
 
 def programFromString(s):
     instructions=[]
