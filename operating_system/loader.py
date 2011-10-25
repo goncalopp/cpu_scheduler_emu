@@ -27,6 +27,7 @@ class Loader:
         pid=  self._generate_pid()
         size= len(program)
         mem= self.os.memory_allocator.allocate( size)
+        self.os.machine.ram.writeProgram( mem, program )
         pcb= PCB(pid, mem, size)
         #add pcb to system state
         self.os.pcbs[pid]= pcb
