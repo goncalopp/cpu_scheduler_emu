@@ -15,12 +15,14 @@ opcodes= \
     "LOAD":     4,  #load [ARG1]  (into EAX)
     "LOAD_REL": 5,  #load [*ARG1] (into EAX)
     "STOR":     6,  #write [EAX]  to [*ARG]
-    "ADD":      8,  #add [ARG1]  to [EAX]
-    "ADD_REL":  9,  #add [*ARG1] to [EAX]
+    "ADD":      7,  #add [ARG1]  to [EAX]
+    "ADD_REL":  8,  #add [*ARG1] to [EAX]
+    "JMP":      9,  #jump to [*ARG1]
+    "JZ":      10,  #jump to [*ARG1] if [EAX] is zero
     }
 
-optional_relative_addressing_opcodes=[4,8]
-forced_relative_addressing_opcodes=[6]
+optional_relative_addressing_opcodes=[4,7]
+forced_relative_addressing_opcodes=[3,5,8,9,10]
 
 
 #number of arguments of each instruction

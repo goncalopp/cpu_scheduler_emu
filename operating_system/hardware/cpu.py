@@ -52,8 +52,13 @@ class Cpu:
             self.interrupt(args[0])
         elif op==OFF:
             raise Poweroff()
+        elif op==JMP:
+                self.registers.PC+= args[0] - 1 # -1 since we will increment PC after the JMP
         elif op==JNZ:
             if self.registers.EAX!=0:
+                self.registers.PC+= args[0] - 1 # -1 since we will increment PC after the JMP
+        elif op==JZ:
+            if self.registers.EAX==0:
                 self.registers.PC+= args[0] - 1 # -1 since we will increment PC after the JMP
         elif op==LOAD:
             self.registers.EAX= args[0]
