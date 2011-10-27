@@ -8,7 +8,7 @@ class TimerDriver:
         self.callback= lambda : None
 
     def set_timer( self, n ):
-        os.machine.timer.setTimer( n )
+        self.os.machine.timer.setTimer( n )
         log.debug("timer set to "+str(n))
         
     def set_callback( self, f ):
