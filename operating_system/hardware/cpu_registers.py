@@ -18,3 +18,10 @@ class Registers():
     def __repr__(self):
         content="   ".join([k+":"+str(v) for k,v in vars(self).items()])
         return "<Registers: "+content+">"
+
+    @staticmethod
+    def clone( other_registers):
+        r= Registers()
+        for k,v in vars( other_registers ).items():
+            setattr( r, k, v)
+        return r
