@@ -53,6 +53,10 @@ class Dispatcher:
         log.debug("terminating current process")
         self.terminate_process( self.currently_executing )
 
+    def signal_external_process_block( self ):
+        '''signals that the currently executing pcb was blocked, externally to dispatcher'''
+        self.currently_executing=None
+
     def get_currently_executing_pcb(self):
         if self.currently_executing is None:
             raise NotExecutingAnything
