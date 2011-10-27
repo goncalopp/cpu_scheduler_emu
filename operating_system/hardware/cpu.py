@@ -11,6 +11,16 @@ class Cpu:
     def __init__(self, memory):
         self.registers= Registers()
         self.memory= memory
+        self.tss= None          #task state segment, keeps old cpu state when context switching
+
+    def _save_tss(self):
+        if not self.tss is None:
+            raise Exception("TSS is not None while context switching")
+        self.tss= {}
+        self.tss["registers"]= Registers.clone( self.registers)        #save old registers
+
+    def clear_tss(self):
+        self.tss=None
 
     def _debug(self):
         return str(self.registers)
