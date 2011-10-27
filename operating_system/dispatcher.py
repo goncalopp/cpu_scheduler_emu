@@ -14,18 +14,37 @@ class Dispatcher:
         self.currently_executing= None
 
     def swap_processes(self):
+        '''swaps currently executing process for another (per scheduler policy)'''
         old_pcb= self.currently_executing
         if old_pcb is None:
             raise NotExecutingAnything
-
         self.os.scheduler.enqueue( old_pcb )
-        new_pcb= self.os.scheduler.dequeue()
-        log.debug("swapped processes. old: "+str(old_pcb)+", new: "+str(new_pcb))
         self.currently_executing= None
-        self.context_switch( new_pcb )
+        self.start_process()
+
+    def start_process(self):
+        '''starts next process (indicated by scheduler)'''
+        new_pcb= self.os.scheduler.dequeue()
+        self.context_switch_to( new_pcb )
 
     def context_switch_to(self, pcb):
         if not self.currently_executing is None:
             raise AlreadyExecutingSomething()
         log.debug("context switching cpu to "+str(pcb))
         self.os.cpu.context_switch( pcb.tss )
+
+    def start_program( self, program ):
+        '''loads program into new process, adds it to runnable list'''
+        pcb= self.os.loader.load( program )
+        log.debug("starting program into process: "+str(pcb))
+        self.os.scheduler.enqueue( pcb )
+
+    def terminate_process( self, pcb ):
+        '''terminates a process'''
+        log.debug("terminating process: "+str(pcb))
+        if self.os.scheduler.is_running( pcb ):
+            self.os.scheduler.remove( pcb )
+        self.os.loader.unload( pcb )
+
+    def terminate_current_process( self ):
+        self.terminate_process( self.currently_executing )
