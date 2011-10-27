@@ -28,9 +28,11 @@ class Loader:
         size= len(program)
         mem= self.os.memory_allocator.allocate( size)
         self.os.machine.ram.writeProgram( mem, program )
-        pcb= PCB(pid, mem, size)
+        sched_info= self.os.scheduler.new_sched_info()
+        pcb= PCB(pid, mem, size, sched_info)
         #add pcb to system state
         self.os.pcbs[pid]= pcb
+        return pcb
 
     def unload(self, pid):
         try:

@@ -2,7 +2,7 @@ import logging
 log= logging.getLogger('os')
 from hardware import machine
 
-interrupt_list= ["timer","io", "syscall_io_driver", "syscall_end_process", "syscall_scheduler"]
+interrupt_list= ["timer","io", "syscall_io_driver", "syscall_end_process"]
 
 interrupt_numbers=  \
     {
@@ -10,7 +10,6 @@ interrupt_numbers=  \
     "io":                   machine.IO_INTERRUPT,
     "syscall_io_driver":    machine.SYSCALL_INTERRUPT_1,
     "syscall_end_process":  machine.SYSCALL_INTERRUPT_2,
-    "syscall_scheduler":    machine.SYSCALL_INTERRUPT_3,    #since we are not supposed to be able to generate timer interruptions in software
     }
 
 interrupt_durations= \
@@ -19,7 +18,6 @@ interrupt_durations= \
     "io":                   0,
     "syscall_io_driver":    0,
     "syscall_end_process":  0,
-    "syscall_scheduler":    0,
     }
     
 class InterruptHandlerProblem( Exception ):
