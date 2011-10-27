@@ -34,7 +34,7 @@ class RoundRobinScheduler(Scheduler):
         self.queue = []
         
     def enqueue(self, pcb):
-        Scheduler.enqueue(self)
+        Scheduler.enqueue(self, pcb)
         self.queue.append(pcb)
 
     def dequeue(self):
