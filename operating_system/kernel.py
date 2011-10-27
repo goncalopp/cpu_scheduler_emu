@@ -47,5 +47,4 @@ class Kernel:
     def kickstart(self):
         '''starts running the first process'''
         log.debug("kickstarting system")
-        pcb= self.scheduler.dequeue()
-        self.dispatcher.context_switch_to( pcb )
+        self.dispatcher.start_process()

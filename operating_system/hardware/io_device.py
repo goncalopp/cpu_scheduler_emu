@@ -1,5 +1,5 @@
 import random
-from timer import InternalTimer
+from timer import InternalTimer, InternalTimerEvent
 import logging
 log= logging.getLogger('hardware')
 

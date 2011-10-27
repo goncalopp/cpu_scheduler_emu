@@ -32,6 +32,7 @@ class Dispatcher:
     def context_switch_to(self, pcb):
         if not self.currently_executing is None:
             raise AlreadyExecutingSomething()
+        self.currently_executing= pcb
         log.debug("context switching cpu to "+str(pcb))
         self.os.machine.cpu.context_switch( pcb.tss )
 
