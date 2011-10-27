@@ -1,6 +1,10 @@
 import logging
 log= logging.getLogger('os')
 
+class NoMoreRunnableProcesses( Exception ):
+    '''no more processes are runnable atm'''
+    pass
+
 quantum_attr= "quantum"
 
 class SchedulingInfo:
@@ -42,5 +46,8 @@ class RoundRobinScheduler(Scheduler):
 
     def dequeue(self):
         Scheduler.dequeue(self)
-        popped_process = self.queue.pop(0)
+        try:
+            popped_process = self.queue.pop(0)
+        except IndexError:
+            raise NoMoreRunnableProcesses()
         return popped_process

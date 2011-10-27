@@ -6,7 +6,6 @@ hdlr.setFormatter(formatter)
 log.addHandler(hdlr)
 log.setLevel(logging.DEBUG)
 from hardware           import machine
-from hardware.cpu_instruction import programFromString
 from io_driver          import IODriver
 from timer_driver       import TimerDriver
 from dispatcher         import Dispatcher
@@ -18,10 +17,9 @@ import interrupts
 class Kernel:
     def __init__(self, machine):
         self.machine= machine
+        self.pcbs= {}       #dictionary of PIDs
         self._initialize_subsystems()
         self._initialize_interrupt_handlers()
-        self.pcbs= {}       #dictionary of PIDs
-        self.idle_process= self.dispatcher.start_program( programFromString("NOOP\nJMP\t-1"))
         log.debug("OS initialized")
 
     def _initialize_subsystems(self):
