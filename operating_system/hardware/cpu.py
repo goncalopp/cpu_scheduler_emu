@@ -34,6 +34,7 @@ class Cpu:
         self.registers= Registers()
         self.memory= memory
         self.tss= None          #task state segment, keeps old cpu state when context switching
+        self.interrupt_stack=[]     #current interrupts to process
 
     def _save_tss(self):
         self.tss= TaskStateSegment( self )
@@ -56,19 +57,20 @@ class Cpu:
         log.info("-----------------CPU STEP START-----------------")
         stepped= False
         while not stepped:
-            if self.registers.INT:
+            if len( self.interrupt_stack )>0:
                 #executing interruption
+                interrupt= self.interrupt_stack[-1]
                 try:
-                    self.registers.INT.step()
-                    log.info(self._debug()+self.registers.INT.task_class.task_name+" interrupt (step)")
+                    interrupt.step()
+                    log.info(self._debug()+interrupt.task_class.task_name+" interrupt (step)")
                     stepped= True
                 except TaskConclusion:
-                    log.info(self._debug()+self.registers.INT.task_class.task_name+" (interrupt step and conclude)")
-                    self.tasks.pop(0)
+                    log.info(self._debug()+interrupt.task_class.task_name+" (interrupt step and conclude)")
+                    self.interrupt_stack.pop()
                     stepped= True
                 except TaskZeroDuration:
-                    log.info(self._debug()+self.registers.INT.task_class.task_name+" (interrupt completed in 0 ticks)")
-                    self.registers.INT= None
+                    log.info(self._debug()+interrupt.task_class.task_name+" (interrupt completed in 0 ticks)")
+                    self.interrupt_stack.pop()
             else:
                 #not executing interruption
                 log.info(self._debug())
@@ -109,10 +111,9 @@ class Cpu:
         self.registers.PC+=1
         
     def interrupt( self, interrupt_number ):
-        if self.registers.INT:
-            raise InterruptedInterruption("Cannot have multiple interrupts running")
         try:
-            self.registers.INT= TaskInstance( self.memory._read_interrupt_handler(interrupt_number) )
+            interrupt= TaskInstance( self.memory._read_interrupt_handler(interrupt_number) )
+            self.interrupt_stack.append(interrupt)
             self._save_tss()    #each time an interruption is executed, the TSS is saved
             log.debug("generated interrupt "+str(interrupt_number))
         except:

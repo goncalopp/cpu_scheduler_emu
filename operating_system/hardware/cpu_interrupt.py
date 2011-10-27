@@ -2,8 +2,6 @@ class TaskConclusion( Exception ):
     pass
 class TaskZeroDuration( Exception ):
     pass
-class InterruptedInterruption( Exception ):
-    pass
 class NoSuchInterrupt( Exception ):
     pass
 
