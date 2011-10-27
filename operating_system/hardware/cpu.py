@@ -18,12 +18,12 @@ class TaskStateSegment:
     def save_state( self, cpu ):
         assert isinstance(cpu, Cpu)
         for name in self.SAVED_REGISTERS:
-            setattr(self, name, getattr(cpu, name))
+            setattr(self, name, getattr(cpu.registers, name))
 
     def load_state( self, cpu ):
         assert isinstance(cpu, Cpu)
         for name in self.SAVED_REGISTERS:
-            setattr(cpu, name, getattr(self, name))
+            setattr(cpu.registers, name, getattr(self, name))
 
     def create_state(self):
         for name in self.SAVED_REGISTERS:

@@ -13,7 +13,7 @@ class PCB:
         self.sched_info=sched_info          #sheduling info
 
     def __repr__(self):
-        return "PCB( PID="+str(self.pid)+" )"
+        return "PCB "+str(self.pid)
 
     def renice( n ):
         self.nice=n
