@@ -14,8 +14,6 @@ class Cpu:
         self.tss= None          #task state segment, keeps old cpu state when context switching
 
     def _save_tss(self):
-        if not self.tss is None:
-            raise Exception("TSS is not None while context switching")
         self.tss= {}
         self.tss["registers"]= Registers.clone( self.registers)        #save old registers
 
@@ -89,6 +87,7 @@ class Cpu:
             raise InterruptedInterruption("Cannot have multiple interrupts running")
         try:
             self.registers.INT= TaskInstance( self.memory._read_interrupt_handler(interrupt_number) )
+            self._save_tss()    #each time an interruption is executed, the TSS is saved
             log.debug("generated interrupt "+str(interrupt_number))
         except:
             raise NoSuchInterrupt("Error running interrupt: "+str(interrupt_number))
