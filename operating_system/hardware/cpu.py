@@ -8,19 +8,26 @@ class Poweroff( Exception ):
     pass
 
 class TaskStateSegment:
+    SAVED_REGISTERS=["PC","EAX"]
     def __init__(self, cpu=None):
         if cpu!=None:
             self.save_state( cpu )
         else:
-            self.registers= Registers()
+            self.create_state()
 
     def save_state( self, cpu ):
         assert isinstance(cpu, Cpu)
-        self.registers= Registers.clone( cpu.registers )
+        for name in self.SAVED_REGISTERS:
+            setattr(self, name, getattr(cpu, name))
 
     def load_state( self, cpu ):
         assert isinstance(cpu, Cpu)
-        cpu.registers= Registers.clone( self.registers )
+        for name in self.SAVED_REGISTERS:
+            setattr(cpu, name, getattr(self, name))
+
+    def create_state(self):
+        for name in self.SAVED_REGISTERS:
+            setattr(cpu, name, 0)
 
 class Cpu:
     def __init__(self, memory):
