@@ -1,5 +1,5 @@
 import random
-from timer import InternalTimer, InternalTimerEvent
+from timer import InternalTimer, InternalTimerEvent, AlreadyConfiguredException
 import logging
 log= logging.getLogger('hardware')
 
@@ -18,7 +18,7 @@ class IO( InternalTimer ):
 
     def io_request(self):
         try:
-            self.internalSetTimer( self.io_operation_time )
+            self.internalSet( self.io_operation_time )
             log.debug("request made")
         except AlreadyConfiguredException:
             raise SimultaneousIO()

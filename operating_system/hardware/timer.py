@@ -20,19 +20,26 @@ class InternalTimer:
                 self.configured= False
                 raise InternalTimerEvent()
     
-    def internalSetTimer( self, time ):
+    def internalSet( self, time ):
         '''interrupts cpu after TIME cpu steps'''
+        assert type(time)==int
         assert time >= 1    #cannot interrupt cpu before concluding currently executing instruction
         if self.configured:
             raise AlreadyConfiguredException()
         self.time= time
         self.configured= True
 
+    def internalUnset( self ):
+        self.configured= False
+
 
 class Timer( InternalTimer ):
-    def setTimer(self, time):
-        self.internalSetTimer( time)
+    def set(self, time):
+        self.internalSet( time )
         log.debug("timer set")
+        
+    def unset(self):
+        self.internalUnset()
         
     def step(self):
         try:
