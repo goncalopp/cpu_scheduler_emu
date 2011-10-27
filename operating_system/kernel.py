@@ -8,7 +8,7 @@ log.setLevel(logging.DEBUG)
 from hardware           import machine
 from io_driver          import IODriver
 from timer_driver       import TimerDriver
-from scheduler          import Scheduler
+from scheduler          import RoundRobinScheduler
 from loader             import Loader
 from memory_allocator   import MemoryAllocator
 import interrupts 
@@ -22,11 +22,11 @@ class Kernel:
         log.debug("OS initialized")
 
     def _initialize_subsystems(self):
-        self.memory_allocator=  MemoryAllocator (self)
-        self.loader=            Loader          (self)
-        self.io_driver=         IODriver        (self)
-        self.timer_driver=      TimerDriver     (self)
-        self.scheduler=         Scheduler       (self)
+        self.memory_allocator=  MemoryAllocator         (self)
+        self.loader=            Loader                  (self)
+        self.io_driver=         IODriver                (self)
+        self.timer_driver=      TimerDriver             (self)
+        self.scheduler=         RoundRobinScheduler     (self)
         self.timer_driver.set_callback( self.scheduler.schedule )   #execute scheduler on timer interrupt
 
     def _initialize_interrupt_handlers(self):
