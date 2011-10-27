@@ -36,7 +36,7 @@ class Loader:
 
     def unload(self, pid):
         try:
-            pcb= self.os.pcbs[pid]
+            pcb= self.os.pcbs.pop(pid)  #remove process
         except KeyError:
             raise NoSuchProcess(str(pid))
         program_address= pcb.start_address
