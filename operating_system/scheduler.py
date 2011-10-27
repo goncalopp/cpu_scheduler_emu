@@ -1,6 +1,8 @@
 import logging
 log= logging.getLogger('os')
 
+quantum_attr= "quantum"
+
 class SchedulingInfo:
     def __init__(self):
         self.user_time = 0
@@ -10,6 +12,7 @@ class RRSchedInfo(SchedulingInfo):
     QUANTUM = 100
     def __init__(self):
         SchedulingInfo.__init__(self)
+        self.quantum= self.QUANTUM
 
 class Scheduler:
     def __init__(self, os):

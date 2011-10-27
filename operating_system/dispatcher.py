@@ -1,3 +1,4 @@
+from scheduler import quantum_attr
 import logging
 log= logging.getLogger('os')
 
@@ -30,10 +31,15 @@ class Dispatcher:
         self.context_switch_to( new_pcb )
 
     def context_switch_to(self, pcb):
+        log.debug("context switching cpu to "+str(pcb))
         if not self.currently_executing is None:
             raise AlreadyExecutingSomething()
+        if hasattr(pcb.sched_info, quantum_attr):
+            quantum= getattr(pcb.sched_info, quantum_attr)
+            log.debug("setting timer to "+str(quantum))
+            self.os.timer_driver.unset_timer()  #since we may have not expired the process time slice
+            self.os.timer_driver.set_timer( quantum )
         self.currently_executing= pcb
-        log.debug("context switching cpu to "+str(pcb))
         self.os.machine.cpu.context_switch( pcb.tss )
 
     def start_program( self, program ):
