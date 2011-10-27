@@ -53,9 +53,16 @@ class Dispatcher:
         log.debug("terminating current process")
         self.terminate_process( self.currently_executing )
 
-    def signal_external_process_block( self ):
-        '''signals that the currently executing pcb was blocked, externally to dispatcher'''
+    def stop_process(self, pcb):
+        '''saves state of process on pcb. does not enqueue it on scheduler'''
+        current_state= self.os.machine.cpu.tss
+        pcb.tss= current_state
         self.currently_executing=None
+
+    def stop_current_process(self):
+        if self.currently_executing is None:
+            raise NotExecutingAnything
+        self.stop_process( self.currently_executing )
 
     def get_currently_executing_pcb(self):
         if self.currently_executing is None:

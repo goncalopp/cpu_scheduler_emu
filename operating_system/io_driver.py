@@ -8,7 +8,6 @@ class IODriver:
         self.pcb_queue=[]   #processes waiting for I/O request generation
         self.waiting= False #waiting for response to I/O request?
 
-    
     def request_io(self):
         '''syscall, available for processes to request i/o'''
         pcb= self.os.dispatcher.get_currently_executing_pcb()  #pcb which made request (the one currently executing)
@@ -16,8 +15,8 @@ class IODriver:
         self.pcb_queue.append( pcb )
         if not self.waiting:
             self._request_io_to_device()
-        self.os.dispatcher.signal_external_process_block()
-        self.os.dispatcher.start_process()
+        self.os.dispatcher.stop_current_process()   #current process is now blocked (not added to scheduler)
+        self.os.dispatcher.start_process()  #start next process
         
     def io_interrupt_handler(self):
         '''called when I/O device has replied to last request'''
@@ -35,5 +34,3 @@ class IODriver:
         assert len(self.pcb_queue)>=1
         self.waiting= True
         self.os.machine.io.io_request()
-        
-            
