@@ -1,3 +1,6 @@
+from hardware.cpu import TaskStateSegment
+
+
 class PCB:
     '''Process Control Block'''
     
@@ -5,7 +8,8 @@ class PCB:
         self.pid= pid                       #PID
         self.start_address= start_address   #of program in memory
         self.size= size                     #of program in memory
-        self.tss=None                       #cpu context identifier
+        self.tss= TaskStateSegment()        #cpu context identifier
+        self.tss.PC= start_address
         self.sched_info=sched_info          #sheduling info
 
     def __repr__(self):

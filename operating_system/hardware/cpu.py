@@ -27,7 +27,7 @@ class TaskStateSegment:
 
     def create_state(self):
         for name in self.SAVED_REGISTERS:
-            setattr(cpu, name, 0)
+            setattr(self, name, 0)
 
 class Cpu:
     def __init__(self, memory):
