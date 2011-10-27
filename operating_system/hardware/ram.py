@@ -6,6 +6,7 @@ log= logging.getLogger('hardware')
 K=1024
 M= 1024*K
 
+OS_MEMORY_START=      128
 PROGRAM_MEMORY_START= 1*K
 
 '''
