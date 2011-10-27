@@ -7,6 +7,21 @@ log= logging.getLogger('hardware')
 class Poweroff( Exception ):
     pass
 
+class TaskStateSegment:
+    def __init__(self, cpu=None):
+        if cpu!=None:
+            self.save_state( cpu )
+        else:
+            self.registers= Registers()
+
+    def save_state( self, cpu ):
+        assert isinstance(cpu, Cpu)
+        self.registers= Registers.clone( cpu.registers )
+
+    def load_state( self, cpu ):
+        assert isinstance(cpu, Cpu)
+        cpu.registers= Registers.clone( self.registers )
+
 class Cpu:
     def __init__(self, memory):
         self.registers= Registers()
@@ -14,11 +29,15 @@ class Cpu:
         self.tss= None          #task state segment, keeps old cpu state when context switching
 
     def _save_tss(self):
-        self.tss= {}
-        self.tss["registers"]= Registers.clone( self.registers)        #save old registers
+        self.tss= TaskStateSegment( self )
 
     def clear_tss(self):
         self.tss=None
+
+    def context_switch(self, old_tss):
+        '''loads information of an TSS into current cpu state'''
+        assert isinstance(old_tss, TaskStateSegment)
+        old_tss.load_state( self )
 
     def _debug(self):
         return str(self.registers)
