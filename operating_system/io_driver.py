@@ -5,8 +5,8 @@ class IODriver:
     def __init__(self, os):
         log.debug("initializing IO Driver")
         self.os= os
-        self.pcb_queue=[]
-        self.waiting= False
+        self.pcb_queue=[]   #processes waiting for I/O request generation
+        self.waiting= False #waiting for response to I/O request?
 
     
     def request_io(self):
@@ -15,6 +15,7 @@ class IODriver:
         self.pcb_queue.append( pcb )
         if not self.waiting:
             self._request_io_to_device()
+            self.waiting= True
         
     def io_interrupt_handler(self):
         log.debug("handling io interrupt")
