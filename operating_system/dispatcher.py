@@ -15,6 +15,7 @@ class Dispatcher:
 
     def swap_processes(self):
         '''swaps currently executing process for another (per scheduler policy)'''
+        log.debug("swapping processes")
         old_pcb= self.currently_executing
         if old_pcb is None:
             raise NotExecutingAnything
@@ -24,6 +25,7 @@ class Dispatcher:
 
     def start_process(self):
         '''starts next process (indicated by scheduler)'''
+        log.debug("starting next process from scheduler")
         new_pcb= self.os.scheduler.dequeue()
         self.context_switch_to( new_pcb )
 
@@ -31,7 +33,7 @@ class Dispatcher:
         if not self.currently_executing is None:
             raise AlreadyExecutingSomething()
         log.debug("context switching cpu to "+str(pcb))
-        self.os.cpu.context_switch( pcb.tss )
+        self.os.machine.cpu.context_switch( pcb.tss )
 
     def start_program( self, program ):
         '''loads program into new process, adds it to runnable list'''
@@ -47,4 +49,5 @@ class Dispatcher:
         self.os.loader.unload( pcb )
 
     def terminate_current_process( self ):
+        log.debug("terminating current process")
         self.terminate_process( self.currently_executing )
