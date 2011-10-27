@@ -52,3 +52,8 @@ class Dispatcher:
     def terminate_current_process( self ):
         log.debug("terminating current process")
         self.terminate_process( self.currently_executing )
+
+    def get_currently_executing_pcb(self):
+        if self.currently_executing is None:
+            raise NotExecutingAnything
+        return self.currently_executing
