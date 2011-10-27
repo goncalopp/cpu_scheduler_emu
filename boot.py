@@ -14,7 +14,8 @@ my_pc= Machine()
 my_pc.io.set_io_operation_time( cfg.iotime )
 my_os= Kernel( my_pc )
 for program in programs:
-    my_os.loader.load( program )
+    my_os.dispatcher.start_program( program )
+my_os.kickstart()
 
 while True:
     try:
