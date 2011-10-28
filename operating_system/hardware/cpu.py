@@ -129,5 +129,5 @@ class Cpu:
             raise NoSuchInterrupt("Error running interrupt: "+str(interrupt_number))
 
     def set_interrupt_handler(self, interrupt_number, cpu_clock_duration, function):
-        self.memory._write_interrupt_handler( interrupt_number, Interrupt(str(interrupt_number), cpu_clock_duration, function))
+        self.memory._write_interrupt_handler( interrupt_number, InterruptHandler(str(interrupt_number), cpu_clock_duration, function))
     

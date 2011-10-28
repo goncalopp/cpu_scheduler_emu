@@ -27,7 +27,7 @@ class Loader:
         pid=  self._generate_pid()
         size= len(program)
         mem= self.os.memory_allocator.allocate( size)
-        self.os.machine.ram.writeProgram( mem, program )
+        program.writeToRam( self.os.machine.ram, mem )
         sched_info= self.os.scheduler.new_sched_info()
         pcb= PCB(pid, mem, size, mem+program.start_offset, sched_info)
         #add pcb to system state

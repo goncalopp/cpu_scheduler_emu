@@ -1,4 +1,4 @@
-from cpu_instruction import MemoryCell, Instruction, Program, OFF
+from ram_cell import RamCell, Instruction
 import cpu_interrupt
 import logging
 log= logging.getLogger('hardware')
@@ -19,36 +19,20 @@ RAM CONTENTS:
 class RAM:
     def __init__(self, size):
         assert size >= 100*K
-        self.contents= [ Instruction(OFF, 0) for i in xrange(size) ]
+        self.contents= [ RamCell(0) for i in xrange(size) ]
 
     def read(self, position):
         return self.raw_read(position).op
 
     def write(self, position, content):
-        self.raw_write( position, MemoryCell(content) )
+        self.raw_write( position, RamCell(content) )
 
     def raw_read(self, position):
         return self.contents[position]
 
     def raw_write(self, position, content):
-        assert isinstance(content, MemoryCell)
+        assert isinstance(content, RamCell)
         self.contents[position]= content
-
-    def _write_interrupt_handler(self, n, ih):
-        assert type(n)==int
-        assert isinstance(ih, cpu_interrupt.Interrupt)
-        self[n]= ih 
-
-    def writeProgram(self, offset, program):
-        assert isinstance(program, Program)
-        for i,instruction in enumerate(program.instructions):
-            self.raw_write(offset+i, instruction)
-
-    def _read_interrupt_handler(self, n):
-        assert type(n)==int
-        ih= self[n]
-        assert isinstance(ih, cpu_interrupt.Interrupt)
-        return ih
 
     def __len__(self):
         return len(self.contents)
@@ -56,3 +40,14 @@ class RAM:
         return self.read(i)
     def __setitem__(self, i, x):
         self.write(i,x)
+
+    def _write_interrupt_handler(self, n, ih):
+        assert type(n)==int
+        assert isinstance(ih, cpu_interrupt.InterruptHandler)
+        self[n]= ih 
+
+    def _read_interrupt_handler(self, n):
+        assert type(n)==int
+        ih= self[n]
+        assert isinstance(ih, cpu_interrupt.InterruptHandler)
+        return ih

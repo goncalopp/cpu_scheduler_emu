@@ -9,10 +9,6 @@ class TaskClass:
     def __init__(self, task_name, task_duration, on_conclusion= lambda:None, on_step= lambda:None):
         self.task_name, self.task_duration, self.on_step, self.on_conclusion= task_name, task_duration, on_step, on_conclusion
 
-class Interrupt( TaskClass ):
-    def __init__(self, interrupt_number, interrupt_duration, on_conclusion):
-        TaskClass.__init__(self, "[INTERRUPT "+str(interrupt_number)+"]", interrupt_duration, on_conclusion)
-
 class TaskInstance:
     def __init__( self, task_class):
         assert isinstance( task_class, TaskClass )
@@ -32,3 +28,12 @@ class TaskInstance:
             self.task_class.on_conclusion()
             self.concluded= True
             raise TaskConclusion();
+
+class InterruptHandler( TaskClass ):
+    def __init__(self, interrupt_number, interrupt_duration, on_conclusion):
+        TaskClass.__init__(self, "[INTERRUPT "+str(interrupt_number)+"]", interrupt_duration, on_conclusion)
+
+class Interrupt( TaskInstance ):
+    def __init__(self, handler):
+        assert isinstance(handler, InterruptHandler)
+        TaskInstance( self, handler )

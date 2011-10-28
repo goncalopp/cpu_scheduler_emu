@@ -21,7 +21,7 @@ MEMORY_SIZE= 100*ram.K
 
 class Machine:
     def __init__(self):
-        initial_interrupt_vector= [cpu.Interrupt(n, 0, lambda:None) for n in range(NUMBER_OF_INTERRUPTS)]
+        initial_interrupt_vector= [cpu.InterruptHandler(n, 0, lambda:None) for n in range(NUMBER_OF_INTERRUPTS)]
         self.ram= ram.RAM( MEMORY_SIZE )
         self.cpu= cpu.Cpu( self.ram )
         self.timer= timer.Timer( self.cpu, TIMER_INTERRUPT )

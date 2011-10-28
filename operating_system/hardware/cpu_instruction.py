@@ -1,4 +1,6 @@
 from cpu_interrupt import Interrupt
+from ram import RAM
+from ram_cell import RamCell, Instruction
 
 class InvalidInstruction( Exception ):
     pass
@@ -47,34 +49,21 @@ number_of_arguments= \
 class Program:
     def __init__(self, instructions, start_offset=0):
         data_segment, code_segment= instructions[:start_offset], instructions[start_offset:]
-        assert all(map(lambda x:isinstance(x, MemoryCell), code_segment))
+        assert all(map(lambda x:isinstance(x, RamCell), code_segment))
         assert all(map(lambda x:isinstance(x, Instruction), code_segment))
         self.instructions= instructions
         self.start_offset= start_offset #start_offset marks the start of the "code segment" (and end of "data segment") 
+
+    def writeToRam(self, ram, offset):
+        assert isinstance(ram, RAM)
+        for i,instruction in enumerate(self.instructions):
+            ram.raw_write(offset+i, instruction)
+
     def __len__(self):
         return len(self.instructions)
+
     def __repr__(self):
         return "\n".join(map(str, self.instructions))
-
-class MemoryCell:
-    def __init__(self, value):
-        assert type(value)==int or isinstance(value, Interrupt)   #hack to save python interrupts in memory cells
-        self.op= value
-    def __repr__(self):
-        return "MemoryCell: "+str( self.op )
-
-class Instruction(MemoryCell):
-    def __init__(self, op, *arguments):
-        assert all(map(lambda x:isinstance(x,int), arguments))  #all arguments are int
-        assert op in opcodes.values()
-        MemoryCell.__init__(self, op)
-        self.args= arguments            #store arguments in list
-    def __repr__(self):
-            try:
-                op= str(opcodes_reverse[self.op])
-                return "\t".join( [op]+map(str,self.args))
-            except KeyError:
-                raise InvalidInstruction(self.op)
 
 def instructionFromString(s):
     l= s.split()
@@ -86,7 +75,7 @@ def instructionFromString(s):
         try:
             assert len(args)==0
             op= int(op)
-            return MemoryCell(op)
+            return RamCell(op)
         except:
             raise InvalidInstruction(s)
 
