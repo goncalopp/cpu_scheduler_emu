@@ -7,6 +7,9 @@ log= logging.getLogger('hardware')
 class Poweroff( Exception ):
     pass
 
+class ExecuteNonInstruction( Exception ):
+    pass
+
 class TaskStateSegment:
     SAVED_REGISTERS=["PC","EAX"]
     def __init__(self, cpu=None):
@@ -77,12 +80,13 @@ class Cpu:
             else:
                 #not executing interruption
                 log.info(self._debug())
-                self.execute_instruction( self.memory[self.registers.PC] )
+                self.execute_instruction( self.memory.raw_read(self.registers.PC) )
                 stepped=True
         self.registers.TSC+=1
 
     def execute_instruction(self, i):
-        assert isinstance(i, Instruction)
+        if not isinstance(i, Instruction):
+            raise ExecuteNonInstruction(str(i)+", "+self._debug())
         log.debug("executing instruction: "+str(i))
         op, args= i.op, i.args
         if op==NOOP:
@@ -104,13 +108,13 @@ class Cpu:
         elif op==LOAD:
             self.registers.EAX= args[0]
         elif op==LOAD_REL:
-            self.registers.EAX= self.memory[self._rel(args[0])].op
+            self.registers.EAX= self.memory[self._rel(args[0])]
         elif op==STOR:
-            self.memory[ self._rel(args[0]) ]=  Instruction(self.registers.EAX)
+            self.memory[ self._rel(args[0]) ]=  self.registers.EAX
         elif op==ADD:
             self.registers.EAX+= args[0]
         elif op==ADD_REL:
-            self.registers.EAX+= self.memory.read( self._rel(args[0]) ).op
+            self.registers.EAX+= self.memory[ self._rel(args[0]) ]
         else:
             raise InvalidInstruction()
         self.registers.PC+=1

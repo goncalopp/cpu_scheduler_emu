@@ -21,6 +21,10 @@ opcodes= \
     "JZ":      10,  #jump to [*ARG1] if [EAX] is zero
     }
 
+opcodes_reverse= dict((v,k) for k, v in opcodes.items())    #construction dictionary from opcode to opname
+for k,v in opcodes.items():                   #add opcodes as local variables
+    locals()[k]=v
+
 optional_relative_addressing_opcodes=[4,7]
 forced_relative_addressing_opcodes=[3,5,8,9,10]
 
@@ -42,7 +46,9 @@ number_of_arguments= \
 
 class Program:
     def __init__(self, instructions, start_offset=0):
-        assert all(map(lambda x:isinstance(x, Instruction), instructions))
+        data_segment, code_segment= instructions[:start_offset], instructions[start_offset:]
+        assert all(map(lambda x:isinstance(x, MemoryCell), code_segment))
+        assert all(map(lambda x:isinstance(x, Instruction), code_segment))
         self.instructions= instructions
         self.start_offset= start_offset #start_offset marks the start of the "code segment" (and end of "data segment") 
     def __len__(self):
@@ -50,34 +56,39 @@ class Program:
     def __repr__(self):
         return "\n".join(map(str, self.instructions))
 
-class Instruction:
-    def __init__(self, op, *arguments):
-        assert isinstance(op, int) or isinstance(op, Interrupt)
-        assert all(map(lambda x:isinstance(x,int), arguments))
-        self.op, self.args= op, arguments    #store arguments in list
+class MemoryCell:
+    def __init__(self, value):
+        assert type(value)==int or isinstance(value, Interrupt)   #hack to save python interrupts in memory cells
+        self.op= value
     def __repr__(self):
-        try:
-            op= opcodes_reverse[self.op]
-        except KeyError:
+        return "MemoryCell: "+str( self.op )
+
+class Instruction(MemoryCell):
+    def __init__(self, op, *arguments):
+        assert all(map(lambda x:isinstance(x,int), arguments))  #all arguments are int
+        assert op in opcodes.values()
+        MemoryCell.__init__(self, op)
+        self.args= arguments            #store arguments in list
+    def __repr__(self):
             try:
-                op= str(int(self.op))
-            except ValueError:
+                op= str(opcodes_reverse[self.op])
+                return "\t".join( [op]+map(str,self.args))
+            except KeyError:
                 raise InvalidInstruction(self.op)
-        return "\t".join( [op]+map(str,self.args))
 
 def instructionFromString(s):
+    l= s.split()
+    op, args= l[0], map(int,l[1:])
     try:
-        l= s.split()
-        op, args= l[0], l[1:]
+        op= opcodes[op] #was op "assembly"?
+        return Instruction(op, *args)
+    except KeyError:
         try:
-            op= opcodes[op] #was operation given as "assembly"?
-        except KeyError:
-            op= int(op)     #was operation given as numbers?
-        args= map(int, args)
-        #assert len(l)-1 == number_of_arguments[op]
-        return Instruction( op, *args )
-    except:
-        raise InvalidInstruction(s)
+            assert len(args)==0
+            op= int(op)
+            return MemoryCell(op)
+        except:
+            raise InvalidInstruction(s)
 
 def programFromString(s, start_offset=0):
     instructions=[]
@@ -96,6 +107,3 @@ def programFromString(s, start_offset=0):
             instructions.append( instructionFromString(line) )
     return Program( instructions, start_offset )
 
-opcodes_reverse= dict((v,k) for k, v in opcodes.items())    #construction dictionary from opcode to opname
-for k,v in opcodes.items():                   #add opcodes as local variables
-    locals()[k]=v
