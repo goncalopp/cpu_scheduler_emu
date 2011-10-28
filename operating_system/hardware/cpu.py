@@ -14,6 +14,8 @@ class TaskStateSegment:
             self.save_state( cpu )
         else:
             self.create_state()
+    def __repr__(self):
+        return "<TSS "+" ".join(":".join([(str(k),str(v)) for k,v in vars(self).items()]))
 
     def save_state( self, cpu ):
         assert isinstance(cpu, Cpu)
