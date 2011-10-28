@@ -14,7 +14,7 @@ def generateProgramsFromConfig( c ):
         programduration= random.normalvariate( c.meandev, c.standdev )
         cpu_burst= c.bursts[i]
         instructions= []
-        while len(instructions) < c.runtime: #at most, a this program will run for the whole duration of the simulation
+        while len(instructions) < programduration: #at most, a this program will run for the whole duration of the simulation
             instructions.extend( [Instruction(NOOP)]*cpu_burst ) #burn cpu doing nothing...
             instructions.append( Instruction( INT, IO_INTERRUPT_NUMBER) )    #and do IO operation
         programs.append( Program(instructions) )
