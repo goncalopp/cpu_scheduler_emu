@@ -6,7 +6,7 @@ import random
 #    if not program_ram_slice is great:
 #        raise VerificationFailed()
 
-    
+
 class VerificationFailed( Exception ):
     pass
 
@@ -63,4 +63,31 @@ fib= VerificationProgram("fibonacci ({n} iterations)".format(n=FIB_ITERATIONS), 
 
 #-----------------------------------------------------------------------
 
-tests= [fib]
+NAT_ITERATIONS= random.randint(20,50)
+nat_code= '''
+-{ITER}                 //0: number of iterations (negative)
+0                       //1: current iteration
+0                       //2: sum
+LOAD_REL    $1          //load iteration counter
+ADD         1           //increment it
+STOR        $1          //and save it
+ADD_REL	    $2          //sum
+STOR        $2          //save sum
+LOAD_REL    $1          //load iteration counter
+ADD_REL     $0          //compare to target iteration number
+JNZ         $3          //repeat if not done
+'''.format(ITER=NAT_ITERATIONS)
+
+def nat_ver( r ):
+    n= NAT_ITERATIONS + 1
+    got= r[2]
+    expected= (n*(n-1))/2
+    if got!=expected:
+        raise VerificationFailed("Expected {a}, got {b}".format(a=expected, b=got))
+
+nat= VerificationProgram("natural numbers sum ({n} iterations)".format(n=NAT_ITERATIONS), programFromString(nat_code, 3), nat_ver)
+
+#-----------------------------------------------------------------
+
+
+tests= [nat, fib]
