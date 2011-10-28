@@ -3,7 +3,6 @@ import ram, cpu
 from machine import Machine
 
 
-#import pdb; pdb.set_trace()
 for test in verification_programs.tests:
     my_pc= Machine()
     program= test.program
