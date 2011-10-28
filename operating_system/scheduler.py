@@ -33,6 +33,14 @@ class Scheduler:
 
     def new_sched_info(self):
         return self.INFO()
+
+    def is_runnable(self, pcb):
+        '''checks if a pcb is runnable'''
+        pass
+
+    def remove(self, pcb):
+        '''removes pcb from runnable queue'''
+        pass
     
 class RoundRobinScheduler(Scheduler):
     INFO= RRSchedInfo
@@ -51,3 +59,9 @@ class RoundRobinScheduler(Scheduler):
         except IndexError:
             raise NoMoreRunnableProcesses()
         return popped_process
+
+    def is_runnable(self, pcb):
+        return pcb in self.queue
+
+    def remove(self, pcb):
+        self.queue.remove(pcb)

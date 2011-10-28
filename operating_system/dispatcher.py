@@ -71,7 +71,7 @@ class Dispatcher:
     def terminate_process( self, pcb ):
         '''terminates a process'''
         log.debug("terminating process: "+str(pcb))
-        if self.os.scheduler.is_running( pcb ):
+        if self.os.scheduler.is_runnable( pcb ):
             self.os.scheduler.remove( pcb )
         self.os.loader.unload( pcb )
         self.start_process()
