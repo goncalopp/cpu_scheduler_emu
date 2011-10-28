@@ -42,3 +42,13 @@ class Machine:
     def generate_interrupt( number ):
         log.debug("generated interrupt"+str(number))
         self.cpu.interrupt( number )
+
+    def debug(self, memory_dump_address, memory_dump_size):
+        '''returns debug information'''
+        m1= memory_dump_address
+        m2= m1+ memory_dump_size
+        registers= str(self.cpu.registers)
+        memory= "\n".join([str(self.ram.raw_read(x)) for x in xrange(m1, m2)])
+        instruction= self.ram.raw_read( self.cpu.registers.PC )
+        separator= "--------------------------------------------------"
+        return "{separator}\n{memory}\n{registers}\n{instruction}".format(**locals())
