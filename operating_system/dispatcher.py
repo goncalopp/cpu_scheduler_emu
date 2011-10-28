@@ -23,10 +23,8 @@ class Dispatcher:
         '''swaps currently executing process for another (per scheduler policy)'''
         log.debug("swapping processes")
         old_pcb= self.currently_executing
-        if old_pcb is None:
-            raise NotExecutingAnything
+        self.stop_current_process()
         self.os.scheduler.enqueue( old_pcb )
-        self.currently_executing= None
         self.start_process()
 
     def start_process(self):
@@ -82,16 +80,14 @@ class Dispatcher:
         self.stop_current_process()
         self.terminate_process( pcb )
 
-    def stop_process(self, pcb):
+    def stop_current_process(self):
         '''saves state of process on pcb. does not enqueue it on scheduler'''
+        if self.currently_executing is None:
+            raise NotExecutingAnything
+        pcb= self.currently_executing
         current_state= self.os.machine.cpu.tss
         pcb.tss= current_state
         self.currently_executing=None
-
-    def stop_current_process(self):
-        if self.currently_executing is None:
-            raise NotExecutingAnything
-        self.stop_process( self.currently_executing )
 
     def get_currently_executing_pcb(self):
         if self.currently_executing is None:
