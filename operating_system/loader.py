@@ -32,6 +32,7 @@ class Loader:
         pcb= PCB(pid, mem, size, mem+program.start_offset, sched_info)
         #add pcb to system state
         self.os.pcbs[pid]= pcb
+        log.debug("loaded program into memory address {mem}. pcb is {pcb}".format(mem=mem, pcb=pcb))
         return pcb
 
     def unload(self, pid):
@@ -41,3 +42,4 @@ class Loader:
             raise NoSuchProcess(str(pid))
         program_address= pcb.start_address
         self.os.memory_allocator.free( program_address )
+        log.debug("unloaded pcb"+str(pcb))
