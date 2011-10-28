@@ -1,3 +1,4 @@
+from itertools import chain
 import logging
 log= logging.getLogger('os')
 
@@ -12,11 +13,18 @@ class SchedulingInfo:
         self.user_time = 0
         self.system_time = 0
 
-class RRSchedInfo(SchedulingInfo):
-    QUANTUM = 100
+class TimeSliceSchedInfo(SchedulingInfo):
+    DEF_QUANTUM = 100
     def __init__(self):
         SchedulingInfo.__init__(self)
-        self.quantum= self.QUANTUM
+        self.quantum= self.DEF_QUANTUM
+
+class OOneSchedInfo(TimeSliceSchedInfo):
+    def __init__(self):
+        TimeSliceSchedInfo.__init__(self)
+        self.priority = 0
+        self.priotity_class = 0
+        self.times_ran = 0
 
 class Scheduler:
     def __init__(self, os):
@@ -41,9 +49,27 @@ class Scheduler:
     def remove(self, pcb):
         '''removes pcb from runnable queue'''
         pass
-    
-class RoundRobinScheduler(Scheduler):
-    INFO= RRSchedInfo
+
+class TimeSliceScheduler(Scheduler):
+    def __init__(self, os):
+        Scheduler.__init__(self,os)
+
+class SignalledScheduler(TimeSliceScheduler):
+    def __init__(self, os):
+        TimeSliceScheduler.__init__(self, os)
+        
+    def signal_time_slice_end(self, pcb):
+        '''signals process pcb finished its time slice'''
+        log.debug("process{pid} finished its time slice".format(pid=pcb.pid))
+        pass
+
+    def signal_io_block(self, pcb):
+        ''' signals process pcb blocked for an IO operation '''
+        log.debug("process{pid} blocked for IO".format(pid=pcb.pid))
+        pass
+
+class RoundRobinScheduler(TimeSliceScheduler):
+    INFO= TimeSliceSchedInfo
     def __init__(self, os):
         Scheduler.__init__(self, os)
         self.queue = []
@@ -65,3 +91,47 @@ class RoundRobinScheduler(Scheduler):
 
     def remove(self, pcb):
         self.queue.remove(pcb)
+
+class OOneScheduler(SignalledScheduler):
+    INFO= OOneSchedInfo
+    PRIORITY_LVLS = 4
+    def __init__(self, os):
+        Scheduler.__init__(self, os)
+        self.interactive_threshold = (int) (self.PRIORITY_LVLS/2)
+        self.active = [[]]*self.PRIORITY_LVLS
+        self.expired = [[]]*self.PRIORITY_LVLS
+        import pdb; pdb.set_trace()
+
+    def enqueue(self, pcb):
+        Scheduler.enqueue(self, pcb)
+        pcb_priority = pcb.sched_info.priority  #check the process priority
+        if pcb.sched_info.times_ran < 2 and pcb_priority >= self.interactive_threshold:
+            self.active[pcb_priority].append(pcb)
+        else:
+            self.expired[pcb_priority].append(pcb)
+
+    def dequeue(self):
+        Scheduler.dequeue(self)
+        try:
+            return chain(*self.active).next()
+        except StopIteration:
+            self.active, self.expired = self.expired, self.active
+            try:
+                return chain(*self.active).next()
+            except StopIteration:
+                raise NoMoreRunnableProcesses()
+
+    def signal_io_block(self, pcb):
+        pcb_priority =  pcb.sched_info.priority
+        pcb.sched_info.times_ran +=1
+        if pcb_priority < self.priority_lvls:
+            pcb_priority +=1
+            pcb.sched_info.quantum = pcb.sched_info.quantum * 0.90
+
+    def signal_time_slice_end(self, pcb):
+        pcb_priority = pcb.sched_info.priority
+        pcb.sched_info.times_ran += 1
+        if pcb_priority > 0:
+            pcb_priority -= 1
+            pcb.sched_info.quantum = pcb.sched_info.quantum * 1/0.90
+            
