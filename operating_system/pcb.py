@@ -1,5 +1,6 @@
 from hardware.cpu import TaskStateSegment
-
+import logging
+log= logging.getLogger('os')
 
 class PCB:
     '''Process Control Block'''
@@ -11,6 +12,7 @@ class PCB:
         self.tss= TaskStateSegment()        #cpu context identifier
         self.tss.PC= pc                     #address of first instruction
         self.sched_info=sched_info          #sheduling info
+        log.debug("Created PCB: "+"<TSS "+" ".join(":".join([str((k,v)) for k,v in vars(self).items()])))
 
     def __repr__(self):
         return "PCB "+str(self.pid)

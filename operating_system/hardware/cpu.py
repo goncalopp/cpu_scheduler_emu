@@ -15,7 +15,7 @@ class TaskStateSegment:
         else:
             self.create_state()
     def __repr__(self):
-        return "<TSS "+" ".join(":".join([(str(k),str(v)) for k,v in vars(self).items()]))
+        return "<TSS "+" ".join(":".join([str((k,v)) for k,v in vars(self).items()]))
 
     def save_state( self, cpu ):
         assert isinstance(cpu, Cpu)
@@ -63,6 +63,7 @@ class Cpu:
                 #executing interruption
                 interrupt= self.interrupt_stack[-1]
                 try:
+                    log.debug("trying to execute interruption"+interrupt.task_class.task_name)
                     interrupt.step()
                     log.info(self._debug()+interrupt.task_class.task_name+" interrupt (step)")
                     stepped= True
