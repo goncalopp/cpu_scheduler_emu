@@ -67,19 +67,12 @@ class Instruction:
 
 def instructionFromString(s):
     try:
-        l= s.split("\t")
+        l= s.split()
         op, args= l[0], l[1:]
         try:
             op= opcodes[op] #was operation given as "assembly"?
         except KeyError:
             op= int(op)     #was operation given as numbers?
-        if len(args)>0 and args[0][0]=="$":
-            #relative addressing
-            if op in optional_relative_addressing_opcodes:
-                op+=1
-            elif not op in forced_relative_addressing_opcodes:
-                raise Exception("got $ symbol on a opcode that doesn't support relative addressing")
-            args[0]= args[0][1:]
         args= map(int, args)
         #assert len(l)-1 == number_of_arguments[op]
         return Instruction( op, *args )
@@ -88,8 +81,19 @@ def instructionFromString(s):
 
 def programFromString(s, start_offset=0):
     instructions=[]
-    for line in s.split("\n"):
-        instructions.append( instructionFromString(line) )
+    for line_number,line in enumerate(s.split("\n")):
+        line_tokens= line.split()
+        for token_number, token in enumerate(line_tokens):
+            #translate absolute addressing to relative addressing
+            if token.startswith("$"):
+                abs_address= int(token[1:])
+                rel_address=  abs_address - line_number +1
+                line_tokens[ token_number ]= str( rel_address)
+        line=" ".join(line_tokens)
+        if len(line)>0: #ignore blank lines
+            if "//" in line:
+                line=line[:line.index("//")]    #remove comments
+            instructions.append( instructionFromString(line) )
     return Program( instructions, start_offset )
 
 opcodes_reverse= dict((v,k) for k, v in opcodes.items())    #construction dictionary from opcode to opname
