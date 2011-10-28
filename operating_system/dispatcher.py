@@ -73,12 +73,14 @@ class Dispatcher:
         log.debug("terminating process: "+str(pcb))
         if self.os.scheduler.is_runnable( pcb ):
             self.os.scheduler.remove( pcb )
-        self.os.loader.unload( pcb )
+        self.os.loader.unload( pcb.pid )
         self.start_process()
 
-    def terminate_current_process( self ):
-        log.debug("terminating current process")
-        self.terminate_process( self.currently_executing )
+    def stop_and_terminate_current_process( self ):
+        log.debug("stopping and terminating current process")
+        pcb= self.currently_executing
+        self.stop_current_process()
+        self.terminate_process( pcb )
 
     def stop_process(self, pcb):
         '''saves state of process on pcb. does not enqueue it on scheduler'''
