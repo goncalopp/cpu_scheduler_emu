@@ -1,5 +1,6 @@
 from cpu_instruction import programFromString, Program
 from ram import RAM
+import random
 
 #def model_verification_function(program_ram_slice):
 #    if not program_ram_slice is great:
@@ -28,7 +29,7 @@ class VerificationProgram:
 
 #-----------------------------------------------------------------------
 
-FIB_ITERATIONS= 30
+FIB_ITERATIONS= random.randint(5,35)
 fib_code= '''
 -{ITER}                 //0: number of iterations (negative)
 0                       //1: current iteration
@@ -58,7 +59,7 @@ def fib_ver( r ):
     if got!=expected:
         raise VerificationFailed("Expected {a}, got {b}".format(a=expected, b=got))
 
-fib= VerificationProgram("fibonacci", programFromString(fib_code, 5), fib_ver)
+fib= VerificationProgram("fibonacci ({n} iterations)".format(n=FIB_ITERATIONS), programFromString(fib_code, 5), fib_ver)
 
 #-----------------------------------------------------------------------
 
