@@ -85,7 +85,9 @@ class Cpu:
         if op==NOOP:
             pass
         elif op==INT:
-            self.interrupt(args[0])
+            self.registers.PC+=1    #since interruption handling will 
+            self.interrupt(args[0]) #save the TSS, but this instruction
+            self.registers.PC-=1    #has already executed
         elif op==OFF:
             raise Poweroff()
         elif op==JMP:
