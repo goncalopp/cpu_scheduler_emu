@@ -37,7 +37,13 @@ class RAM:
     def __len__(self):
         return len(self.contents)
     def __getitem__(self, i):
-        return self.read(i)
+        if type(i)==int:
+            return self.read(i)
+        elif type(i)==slice:
+            return [self.read(x) for x in xrange(*i.indices(len(self.contents)))]
+        else:
+            raise NotImplemented()
+
     def __setitem__(self, i, x):
         self.write(i,x)
 

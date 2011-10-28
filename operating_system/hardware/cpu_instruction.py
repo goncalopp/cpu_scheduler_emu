@@ -65,6 +65,9 @@ class Program:
     def __repr__(self):
         return "\n".join(map(str, self.instructions))
 
+    def __getitem__(self, k):
+        return self.instructions[k]
+
 def instructionFromString(s):
     l= s.split()
     op, args= l[0], map(int,l[1:])
