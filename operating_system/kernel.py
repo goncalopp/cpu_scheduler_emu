@@ -11,13 +11,13 @@ from timer_driver       import TimerDriver
 from dispatcher         import Dispatcher
 from scheduler          import *
 from loader             import Loader
+from process_manager    import ProcessManager
 from memory_allocator   import MemoryAllocator
 import interrupts 
 
 class Kernel:
     def __init__(self, machine):
         self.machine= machine
-        self.pcbs= {}       #dictionary of PIDs
         self._initialize_subsystems()
         self._initialize_interrupt_handlers()
         log.debug("OS initialized")
@@ -27,6 +27,7 @@ class Kernel:
         self.loader=            Loader                  (self)
         self.io_driver=         IODriver                (self)
         self.timer_driver=      TimerDriver             (self)
+        self.process_manager=   ProcessManager          (self)
         self.scheduler=         RoundRobinScheduler     (self)
         self.dispatcher=        Dispatcher              (self)
         self.timer_driver.set_callback( self.dispatcher.swap_processes )   #execute on timer interrupt
