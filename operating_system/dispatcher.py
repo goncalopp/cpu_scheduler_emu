@@ -30,8 +30,9 @@ class Dispatcher:
     def start_process(self):
         '''starts next process (indicated by scheduler)'''
         log.debug("starting next process from scheduler")
-        if len(self.os.pcbs)<2:
-            assert len(self.os.pcbs)==1 #must have idle process
+        n_processes= len(self.os.process_manager.get_all_processes())
+        if n_processes<2:
+            assert n_processes==1 #must have idle process
             raise NoMoreProcesses("All processes have finished")
         new_pcb= self.os.scheduler.dequeue()
         if new_pcb==self.idle_process:              #if next runnable is the idle process
@@ -61,8 +62,8 @@ class Dispatcher:
 
     def start_program( self, program ):
         '''loads program into new process, adds it to runnable list'''
-        pcb= self.os.loader.load( program )
-        log.debug("starting program into process: "+str(pcb))
+        loaded= self.os.loader.load( program )
+        pcb= self.os.process_manager.create_process( loaded )
         self.os.scheduler.enqueue( pcb )
         return pcb
 
@@ -71,7 +72,8 @@ class Dispatcher:
         log.debug("terminating process: "+str(pcb))
         if self.os.scheduler.is_runnable( pcb ):
             self.os.scheduler.remove( pcb )
-        self.os.loader.unload( pcb.pid )
+        self.os.process_manager.remove_process(pcb.pid)
+        self.os.loader.unload( pcb )
         self.start_process()
 
     def stop_and_terminate_current_process( self ):

@@ -53,11 +53,18 @@ class Program:
         assert all(map(lambda x:isinstance(x, Instruction), code_segment))
         self.instructions= instructions
         self.start_offset= start_offset #start_offset marks the start of the "code segment" (and end of "data segment") 
+        self.address= None
 
     def writeToRam(self, ram, offset):
         assert isinstance(ram, RAM)
         for i,instruction in enumerate(self.instructions):
             ram.raw_write(offset+i, instruction)
+        self.address= offset
+
+    def get_ram_address(self):
+        if self.address is None:
+            raise Exception("Getting address of program yet to be copied to ram")
+        return self.address
 
     def __len__(self):
         return len(self.instructions)
