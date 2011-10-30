@@ -10,6 +10,7 @@ class ProcessManager:
         self.os= os
         self.pcbs={}
         self.pid_counter=0  #PID of first process is 0
+        self.changestate_callback=lambda pcb, oldstate, newstate:None
 
     def _generate_pid(self):
         n= self.pid_counter
@@ -23,7 +24,7 @@ class ProcessManager:
         pid= self._generate_pid()
         sched_info= self.os.scheduler.new_sched_info()
         address= program.get_ram_address()
-        pcb= PCB(pid, address, len(program), address+program.start_offset, sched_info)
+        pcb= PCB(pid, address, len(program), address+program.start_offset, sched_info, self.changestate_callback)
         self.pcbs[pid]= pcb
         log.debug("created process: "+str(pcb))
         return pcb
@@ -34,6 +35,8 @@ class ProcessManager:
         except KeyError:
             raise NoSuchProcess(str(pid))
 
-
     def get_all_processes(self):
         return self.pcbs.values()
+
+    def set_changestate_callback( f ):
+        self.changestate_callback= f
