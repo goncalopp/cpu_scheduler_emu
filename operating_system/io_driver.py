@@ -1,3 +1,4 @@
+import scheduler
 import logging
 log= logging.getLogger('os')
 
@@ -16,6 +17,8 @@ class IODriver:
         if not self.waiting:
             self._request_io_to_device()
         self.os.dispatcher.stop_current_process()   #current process is now blocked (not added to scheduler)
+        if instance(self.os.scheduler, scheduler.SignalledScheduler):
+            self.os.scheduler.signal_io_block( pcb )
         self.os.dispatcher.start_process()  #start next process
         
     def io_interrupt_handler(self):

@@ -1,15 +1,16 @@
 from hardware.cpu_instruction import programFromString
+from pcb import RUNNING, RUNNABLE, BLOCKED
 import scheduler
 import logging
 log= logging.getLogger('os')
 
-class NotExecutingAnything( Exception ):
+class NoMoreProcesses( Exception ):
     pass
 
 class AlreadyExecutingSomething( Exception ):
     pass
-
-class NoMoreProcesses( Exception ):
+    
+class NotExecutingAnything( Exception ):
     pass
 
 class Dispatcher:
@@ -17,17 +18,22 @@ class Dispatcher:
         log.debug("initializing dispatcher")
         self.os= os
         self.currently_executing= None
-        self.idle_process= self.start_program( programFromString("NOOP\nJMP\t-1"))
+        self.idle_process= self.os.process_manager.start_program( programFromString("NOOP\nJMP\t-1"))
+
+    def timer_end(self):
+        if instance(self.os.scheduler, scheduler.SignalledScheduler):
+            self.os.scheduler.signal_time_slice_end( self.currently_executing )
+        swap_processes()
 
     def swap_processes(self):
         '''swaps currently executing process for another (per scheduler policy)'''
         log.debug("swapping processes")
-        old_pcb= self.currently_executing
-        self.stop_current_process()
-        self.os.scheduler.enqueue( old_pcb )
-        self.start_process()
+        pcb= self.stop_running_process()
+        pcb.state= RUNNABLE
+        self.os.scheduler.enqueue( pcb )
+        self.start_next_process()
 
-    def start_process(self):
+    def start_next_process(self):
         '''starts next process (indicated by scheduler)'''
         log.debug("starting next process from scheduler")
         n_processes= len(self.os.process_manager.get_all_processes())
@@ -35,6 +41,7 @@ class Dispatcher:
             assert n_processes==1 #must have idle process
             raise NoMoreProcesses("All processes have finished")
         new_pcb= self.os.scheduler.dequeue()
+        assert new_pcb.state==RUNNABLE
         if new_pcb==self.idle_process:              #if next runnable is the idle process
             try:
                 new_pcb= self.os.scheduler.dequeue()    #are there any other runnable?
@@ -58,40 +65,32 @@ class Dispatcher:
                 self.os.timer_driver.unset_timer()  #since we may have not expired the process time slice
                 self.os.timer_driver.set_timer( quantum )
         self.currently_executing= pcb
+        pcb.state= RUNNING
         self.os.machine.cpu.context_switch( pcb.tss )
 
-    def start_program( self, program ):
-        '''loads program into new process, adds it to runnable list'''
-        loaded= self.os.loader.load( program )
-        pcb= self.os.process_manager.create_process( loaded )
-        self.os.scheduler.enqueue( pcb )
-        return pcb
-
-    def terminate_process( self, pcb ):
-        '''terminates a process'''
-        log.debug("terminating process: "+str(pcb))
-        if self.os.scheduler.is_runnable( pcb ):
-            self.os.scheduler.remove( pcb )
-        self.os.process_manager.remove_process(pcb.pid)
-        self.os.loader.unload( pcb )
-        self.start_process()
-
-    def stop_and_terminate_current_process( self ):
-        log.debug("stopping and terminating current process")
-        pcb= self.currently_executing
-        self.stop_current_process()
-        self.terminate_process( pcb )
-
-    def stop_current_process(self):
-        '''saves state of process on pcb. does not enqueue it on scheduler'''
+    def stop_running_process(self):
+        '''saves state of process on pcb, does not enqueue it on scheduler'''
+        log.debug("stopping running process")
         if self.currently_executing is None:
             raise NotExecutingAnything
         pcb= self.currently_executing
-        current_state= self.os.machine.cpu.tss
-        pcb.tss= current_state
+        assert pcb.state==RUNNING
+        pcb.tss= self.os.machine.cpu.tss
+        pcb.state= None
         self.currently_executing=None
+        return pcb
+
+    def stop_runnable_process( self, pcb ):
+        log.debug("stop runnable process: "+str(pcb))
+        assert pcb.state == RUNNABLE
+        pcb.state= None
+        self.os.scheduler.remove( pcb )
 
     def get_currently_executing_pcb(self):
         if self.currently_executing is None:
             raise NotExecutingAnything
         return self.currently_executing
+
+    def remove_current_process(self):
+        self.os.process_manager.remove_process( self.currently_executing.pid )
+        self.start_next_process()
