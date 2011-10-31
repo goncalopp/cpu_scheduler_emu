@@ -123,7 +123,7 @@ class OOneScheduler(SignalledScheduler):
     def signal_io_block(self, pcb):
         pcb_priority =  pcb.sched_info.priority
         pcb.sched_info.times_ran +=1
-        if pcb_priority < self.priority_lvls:
+        if pcb_priority < self.PRIORITY_LVLS:
             pcb_priority +=1
             pcb.sched_info.quantum = pcb.sched_info.quantum * 0.90
 
@@ -133,4 +133,3 @@ class OOneScheduler(SignalledScheduler):
         if pcb_priority > 0:
             pcb_priority -= 1
             pcb.sched_info.quantum = pcb.sched_info.quantum * 1/0.90
-            
