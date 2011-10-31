@@ -8,7 +8,7 @@ MAX_CYCLES= 10000000
 my_pc= Machine()
 my_os= Kernel( my_pc )
 for test in verification_programs.tests:
-    pcb= my_os.dispatcher.start_program( test.program )
+    pcb= my_os.process_manager.start_program( test.program )
     test.tmp_var_start_address= pcb.start_address
 my_os.kickstart()
 

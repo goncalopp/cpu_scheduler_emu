@@ -37,7 +37,7 @@ class Kernel:
                             self.timer_driver.timer_interrupt_handler,
                             self.io_driver.io_interrupt_handler,
                             self.io_driver.request_io,
-                            self.dispatcher.stop_and_terminate_current_process,
+                            self.dispatcher.remove_current_process,
                             ]
         mih, il= my_interrupt_handlers, interrupts.interrupt_list
         interrupts.InterruptHandlerGroup( self, self.machine, dict(zip(il, mih)))
@@ -48,4 +48,4 @@ class Kernel:
     def kickstart(self):
         '''starts running the first process'''
         log.debug("kickstarting system")
-        self.dispatcher.start_process()
+        self.dispatcher.start_next_process()
