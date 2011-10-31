@@ -29,7 +29,7 @@ class Dispatcher:
         '''swaps currently executing process for another (per scheduler policy)'''
         log.debug("swapping processes")
         pcb= self.stop_running_process()
-        pcb.state= RUNNABLE
+        pcb.changeState( RUNNABLE )
         self.os.scheduler.enqueue( pcb )
         self.start_next_process()
 
@@ -41,7 +41,7 @@ class Dispatcher:
             assert n_processes==1 #must have idle process
             raise NoMoreProcesses("All processes have finished")
         new_pcb= self.os.scheduler.dequeue()
-        assert new_pcb.state==RUNNABLE
+        assert new_pcb.state== RUNNABLE
         if new_pcb==self.idle_process:              #if next runnable is the idle process
             try:
                 new_pcb= self.os.scheduler.dequeue()    #are there any other runnable?
@@ -65,7 +65,7 @@ class Dispatcher:
                 self.os.timer_driver.unset_timer()  #since we may have not expired the process time slice
                 self.os.timer_driver.set_timer( int(quantum) )
         self.currently_executing= pcb
-        pcb.state= RUNNING
+        pcb.changeState( RUNNING )
         self.os.machine.cpu.context_switch( pcb.tss )
 
     def stop_running_process(self):
@@ -76,14 +76,12 @@ class Dispatcher:
         pcb= self.currently_executing
         assert pcb.state==RUNNING
         pcb.tss= self.os.machine.cpu.tss
-        pcb.state= None
         self.currently_executing=None
         return pcb
 
     def stop_runnable_process( self, pcb ):
         log.debug("stop runnable process: "+str(pcb))
         assert pcb.state == RUNNABLE
-        pcb.state= None
         self.os.scheduler.remove( pcb )
 
     def get_currently_executing_pcb(self):

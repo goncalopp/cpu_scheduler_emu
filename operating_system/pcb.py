@@ -17,7 +17,7 @@ class PCB:
         self.state= RUNNABLE
         self.changestate_callback= changestate_callback #will be called on state change
 
-    def changeState( new_state ):
+    def changeState( self, new_state ):
         assert new_state in (RUNNING, RUNNABLE, BLOCKED)
         if new_state == RUNNING:
             assert self.state == RUNNABLE
@@ -25,7 +25,7 @@ class PCB:
             assert self.state in (BLOCKED,RUNNING)
         if new_state == BLOCKED:
             assert self.state == RUNNING
-        self.statechange_callback( self, self.state, new_state)
+        self.changestate_callback( self, self.state, new_state)
         self.state= new_state
 
     def __repr__(self):
