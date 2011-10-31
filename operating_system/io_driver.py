@@ -1,5 +1,6 @@
 import scheduler
 import logging
+from pcb import RUNNABLE
 log= logging.getLogger('os')
 
 class IODriver:
@@ -19,12 +20,13 @@ class IODriver:
         self.os.dispatcher.stop_running_process()   #current process is now blocked (not added to scheduler)
         if isinstance(self.os.scheduler, scheduler.SignalledScheduler):
             self.os.scheduler.signal_io_block( pcb )
-        self.os.dispatcher.start_process()  #start next process
+        self.os.dispatcher.start_next_process()  #start next process
         
     def io_interrupt_handler(self):
         '''called when I/O device has replied to last request'''
         log.debug("handling io interrupt")
         pcb= self.pcb_queue.pop(0)      #pcb which made io request
+        pcb.state = RUNNABLE
         self.os.scheduler.enqueue( pcb) # is now ready to start again
         self.waiting=False
         if len(self.pcb_queue)>0:

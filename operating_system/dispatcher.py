@@ -63,7 +63,7 @@ class Dispatcher:
                 quantum= getattr(pcb.sched_info, scheduler.quantum_attr)
                 log.debug("setting timer to "+str(quantum))
                 self.os.timer_driver.unset_timer()  #since we may have not expired the process time slice
-                self.os.timer_driver.set_timer( quantum )
+                self.os.timer_driver.set_timer( int(quantum) )
         self.currently_executing= pcb
         pcb.state= RUNNING
         self.os.machine.cpu.context_switch( pcb.tss )
