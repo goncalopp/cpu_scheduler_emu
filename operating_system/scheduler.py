@@ -100,7 +100,6 @@ class OOneScheduler(SignalledScheduler):
         self.interactive_threshold = (int) (self.PRIORITY_LVLS/2)
         self.active = [[]]*self.PRIORITY_LVLS
         self.expired = [[]]*self.PRIORITY_LVLS
-        import pdb; pdb.set_trace()
 
     def enqueue(self, pcb):
         Scheduler.enqueue(self, pcb)
@@ -112,14 +111,14 @@ class OOneScheduler(SignalledScheduler):
 
     def dequeue(self):
         Scheduler.dequeue(self)
-        try:
-            return chain(*self.active).next()
-        except StopIteration:
-            self.active, self.expired = self.expired, self.active
-            try:
-                return chain(*self.active).next()
-            except StopIteration:
-                raise NoMoreRunnableProcesses()
+        for l in self.active:
+            if len(l) > 0:
+                return l.pop(0)
+        self.active, self.expired = self.expired, self.active
+        for l in self.active:
+            if len(l) > 0:
+                return l.pop(0)
+        raise NoMoreRunnableProcesses()
 
     def signal_io_block(self, pcb):
         pcb_priority =  pcb.sched_info.priority

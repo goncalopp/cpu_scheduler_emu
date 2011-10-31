@@ -28,7 +28,7 @@ class Kernel:
         self.io_driver=         IODriver                (self)
         self.timer_driver=      TimerDriver             (self)
         self.process_manager=   ProcessManager          (self)
-        self.scheduler=         RoundRobinScheduler     (self)
+        self.scheduler=         OOneScheduler     (self)
         self.dispatcher=        Dispatcher              (self)
         self.timer_driver.set_callback( self.dispatcher.swap_processes )   #execute on timer interrupt
 
