@@ -48,5 +48,5 @@ class ProcessManager:
     def get_all_processes(self):
         return self.pcbs.values()
 
-    def set_changestate_callback( f ):
+    def set_changestate_callback( self, f ):
         self.changestate_callback= f

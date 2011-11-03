@@ -21,9 +21,9 @@ class Dispatcher:
         self.idle_process= self.os.process_manager.start_program( programFromString("NOOP\nJMP\t-1"))
 
     def timer_end(self):
-        if instance(self.os.scheduler, scheduler.SignalledScheduler):
+        if isinstance(self.os.scheduler, scheduler.SignalledScheduler):
             self.os.scheduler.signal_time_slice_end( self.currently_executing )
-        swap_processes()
+        self.swap_processes()
 
     def swap_processes(self):
         '''swaps currently executing process for another (per scheduler policy)'''

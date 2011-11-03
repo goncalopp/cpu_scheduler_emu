@@ -36,8 +36,8 @@ class Machine:
     def set_interrupt_handler( self, *args, **kwargs ):
         self.cpu.set_interrupt_handler( *args, **kwargs)
 
-    def get_clock_ticks():
-        return self.cpu.tsc()
+    def get_clock_ticks( self ):
+        return self.cpu.registers.TSC
     
     def generate_interrupt( number ):
         log.debug("generated interrupt"+str(number))

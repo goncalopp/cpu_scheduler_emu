@@ -30,7 +30,7 @@ class Kernel:
         self.process_manager=   ProcessManager          (self)
         self.scheduler=         OOneScheduler           (self)
         self.dispatcher=        Dispatcher              (self)
-        self.timer_driver.set_callback( self.dispatcher.swap_processes )   #execute on timer interrupt
+        self.timer_driver.set_callback( self.dispatcher.timer_end )   #execute on timer interrupt
 
     def _initialize_interrupt_handlers(self):
         my_interrupt_handlers= [
