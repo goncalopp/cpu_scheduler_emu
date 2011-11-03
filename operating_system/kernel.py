@@ -1,3 +1,5 @@
+USE_IDLE_PROCESS= True
+
 import logging
 log= logging.getLogger('os')
 formatter = logging.Formatter('%(asctime)s\t%(levelname)s\t%(name)s\t%(module)s\t%(funcName)s\t%(message)s')
@@ -13,6 +15,7 @@ from scheduler          import *
 from loader             import Loader
 from process_manager    import ProcessManager
 from memory_allocator   import MemoryAllocator
+from idle_process        import IdleProcessScheduler
 import interrupts 
 
 class Kernel:
@@ -30,7 +33,9 @@ class Kernel:
         self.process_manager=   ProcessManager          (self)
         self.scheduler=         OOneScheduler           (self)
         self.dispatcher=        Dispatcher              (self)
-        self.timer_driver.set_callback( self.dispatcher.timer_end )   #execute on timer interrupt
+        self.timer_driver.set_callback( self.dispatcher.swap_processes )   #execute on timer interrupt
+        if USE_IDLE_PROCESS:
+            IdleProcessScheduler    (self)
 
     def _initialize_interrupt_handlers(self):
         my_interrupt_handlers= [

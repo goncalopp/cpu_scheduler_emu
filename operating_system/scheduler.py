@@ -31,6 +31,7 @@ class Scheduler:
         self.os= os
         self.os.process_manager.add_changestate_callback( self.scheduler_changestate )  #register for pcb state change
 
+
     def enqueue(self, pcb):
         log.debug("scheduler enqueueing process with PID {pid}".format(pid= pcb.pid))
         pcb.last_enqueue= self.os.get_system_ticks()
@@ -44,10 +45,12 @@ class Scheduler:
         if newstate==RUNNING:
             #was put running
             pcb.sched_info.last_run_on= self.os.get_system_ticks()
+            log.info("pcb "+str(pcb)+" is now running ("+str(pcb.sched_info.last_run_on))
         if newstate==RUNNABLE or newstate==BLOCKED:
             #was stopped
             current_time= self.os.get_system_ticks()
             elapsed= current_time - pcb.sched_info.last_run_on
+            log.info("pcb "+str(pcb)+" stopped. runned for ("+str(elapsed))
             pcb.sched_info.user_time+= elapsed
 
 

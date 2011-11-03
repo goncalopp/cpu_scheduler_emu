@@ -20,7 +20,7 @@ class ProcessManager:
     def get_process(self, pid):
         return self.pcbs[pid]
 
-    def start_program( self, program ):
+    def start_program( self, program, run=True):
         '''loads program into new process, adds it to runnable list'''
         loaded= self.os.loader.load( program )
         pid= self._generate_pid()
@@ -28,9 +28,20 @@ class ProcessManager:
         address= loaded.get_ram_address()
         pcb= PCB(pid, address, len(loaded), address+loaded.start_offset, sched_info, self._changestate_callback)
         self.pcbs[pid]= pcb
-        self.os.scheduler.enqueue( pcb )
+        pcb.not_started=True
+        if run:
+            self.run_started_program(pcb)
+        else:
+            #program will be started later
+            pass
         log.debug("created process: "+str(pcb))
         return pcb
+
+    def run_started_program(self, pcb):
+        assert isinstance(pcb, PCB)
+        assert hasattr(pcb, "not_started")   #program must not already be started
+        delattr(pcb, "not_started")
+        self.os.scheduler.enqueue( pcb )
 
     def remove_process(self, pid):
         '''removes a process (terminating it if necessary)'''
