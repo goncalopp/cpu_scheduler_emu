@@ -29,6 +29,7 @@ class Scheduler:
     def __init__(self, os):
         log.debug("initializing scheduler")
         self.os= os
+        self.os.process_manager.add_changestate_callback( self.scheduler_changestate )  #register for pcb state change
 
     def enqueue(self, pcb):
         log.debug("scheduler enqueueing process with PID {pid}".format(pid= pcb.pid))
@@ -68,7 +69,7 @@ class TimeSliceScheduler(Scheduler):
             quantum= pcb.sched_info.quantum
             log.debug("setting timer to "+str(quantum))
             self.os.timer_driver.unset_timer()  #since we may have not expired the process time slice
-            self.os.timer_driver.set_timer( int(quantum) )
+            self.os.timer_driver.set_timer( max(1,int(quantum)) )   #minimum timeslice is 1
 
 class SignalledScheduler(TimeSliceScheduler):
     def __init__(self, os):
