@@ -121,7 +121,7 @@ class Cpu:
         
     def interrupt( self, interrupt_number ):
         try:
-            interrupt= TaskInstance( self.memory._read_interrupt_handler(interrupt_number) )
+            interrupt= Interrupt( self.memory._read_interrupt_handler(interrupt_number) )
             self.interrupt_stack.append(interrupt)
             self._save_tss()    #each time an interruption is executed, the TSS is saved
             log.debug("generated interrupt "+str(interrupt_number))
