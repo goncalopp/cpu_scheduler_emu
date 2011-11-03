@@ -101,7 +101,7 @@ class SignalledScheduler(TimeSliceScheduler):
 class RoundRobinScheduler(TimeSliceScheduler):
     INFO= TimeSliceSchedInfo
     def __init__(self, os):
-        Scheduler.__init__(self, os)
+        TimeSliceScheduler.__init__(self, os)
         self.queue = []
         
     def enqueue(self, pcb):
