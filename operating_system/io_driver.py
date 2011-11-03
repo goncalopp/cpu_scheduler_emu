@@ -19,8 +19,6 @@ class IODriver:
             self._request_io_to_device()
         self.os.dispatcher.stop_running_process()   #current process is now blocked (not added to scheduler)
         pcb.changeState( BLOCKED )
-        if isinstance(self.os.scheduler, scheduler.SignalledScheduler):
-            self.os.scheduler.signal_io_block( pcb )
         self.os.dispatcher.start_next_process()  #start next process
         
     def io_interrupt_handler(self):

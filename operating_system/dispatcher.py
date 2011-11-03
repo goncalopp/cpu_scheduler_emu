@@ -21,8 +21,6 @@ class Dispatcher:
         self.idle_process= self.os.process_manager.start_program( programFromString("NOOP\nJMP\t-1"))
 
     def timer_end(self):
-        if isinstance(self.os.scheduler, scheduler.SignalledScheduler):
-            self.os.scheduler.signal_time_slice_end( self.currently_executing )
         self.swap_processes()
 
     def swap_processes(self):
@@ -57,13 +55,6 @@ class Dispatcher:
         if pcb == self.idle_process:
             self.os.timer_driver.unset_timer()
             self.os.timer_driver.set_timer( 1 ) #run idle process as little as possible
-        else:
-            if hasattr(pcb.sched_info, scheduler.quantum_attr):
-                #scheduler supports preemption , using timer regulated time slices
-                quantum= getattr(pcb.sched_info, scheduler.quantum_attr)
-                log.debug("setting timer to "+str(quantum))
-                self.os.timer_driver.unset_timer()  #since we may have not expired the process time slice
-                self.os.timer_driver.set_timer( int(quantum) )
         self.currently_executing= pcb
         pcb.changeState( RUNNING )
         self.os.machine.cpu.context_switch( pcb.tss )

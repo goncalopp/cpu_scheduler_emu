@@ -10,7 +10,7 @@ class ProcessManager:
         self.os= os
         self.pcbs={}
         self.pid_counter=0  #PID of first process is 0
-        self.changestate_callback=lambda pcb, oldstate, newstate:None
+        self.changestate_callbacks=[]
 
     def _generate_pid(self):
         n= self.pid_counter
@@ -26,7 +26,7 @@ class ProcessManager:
         pid= self._generate_pid()
         sched_info= self.os.scheduler.new_sched_info()
         address= loaded.get_ram_address()
-        pcb= PCB(pid, address, len(loaded), address+loaded.start_offset, sched_info, self.changestate_callback)
+        pcb= PCB(pid, address, len(loaded), address+loaded.start_offset, sched_info, self._changestate_callback)
         self.pcbs[pid]= pcb
         self.os.scheduler.enqueue( pcb )
         log.debug("created process: "+str(pcb))
@@ -48,5 +48,11 @@ class ProcessManager:
     def get_all_processes(self):
         return self.pcbs.values()
 
-    def set_changestate_callback( self, f ):
-        self.changestate_callback= f
+    def add_changestate_callback( self, f ):
+        assert callable(f)
+        self.changestate_callbacks.append( f )
+
+    def _changestate_callback( self, pcb, oldstate, newstate ):
+        '''function that handles a pcb changestate'''
+        for f in self.changestate_callbacks:
+            f( pcb, oldstate, newstate )
