@@ -46,7 +46,7 @@ class Scheduler:
             #was put running
             pcb.sched_info.last_run_on= self.os.get_system_ticks()
             log.info("pcb "+str(pcb)+" is now running ("+str(pcb.sched_info.last_run_on))
-        if newstate==RUNNABLE or newstate==BLOCKED:
+        if oldstate==RUNNING and (newstate==RUNNABLE or newstate==BLOCKED):
             #was stopped
             current_time= self.os.get_system_ticks()
             elapsed= current_time - pcb.sched_info.last_run_on
