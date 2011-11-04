@@ -39,7 +39,7 @@ class Cpu:
         self.registers= Registers()
         self.memory= memory
         self.tss= None          #task state segment, keeps old cpu state when context switching
-        self.interrupt_stack=[]     #current interrupts to process
+        self.interrupt_queue=[]     #current interrupts to process
 
     def _save_tss(self):
         self.tss= TaskStateSegment( self )
@@ -62,9 +62,11 @@ class Cpu:
         log.info("-----------------CPU STEP START-----------------")
         stepped= False
         while not stepped:
-            if len( self.interrupt_stack )>0:
+            if len( self.interrupt_queue )>0:
+                if len( self.interrupt_queue )>1:
+                    print "multiple!"
                 #executing interruption
-                interrupt= self.interrupt_stack[-1]
+                interrupt= self.interrupt_queue[0]
                 try:
                     log.debug("trying to execute interruption"+interrupt.task_class.task_name)
                     interrupt.step()
@@ -72,11 +74,11 @@ class Cpu:
                     stepped= True
                 except TaskConclusion:
                     log.info(self._debug()+interrupt.task_class.task_name+" (interrupt step and conclude)")
-                    self.interrupt_stack.pop()
+                    self.interrupt_queue.pop(0)
                     stepped= True
                 except TaskZeroDuration:
                     log.info(self._debug()+interrupt.task_class.task_name+" (interrupt completed in 0 ticks)")
-                    self.interrupt_stack.pop()
+                    self.interrupt_queue.pop(0)
             else:
                 #not executing interruption
                 log.info(self._debug())
@@ -122,7 +124,7 @@ class Cpu:
     def interrupt( self, interrupt_number ):
         try:
             interrupt= Interrupt( self.memory._read_interrupt_handler(interrupt_number) )
-            self.interrupt_stack.append(interrupt)
+            self.interrupt_queue.append(interrupt)
             self._save_tss()    #each time an interruption is executed, the TSS is saved
             log.debug("generated interrupt "+str(interrupt_number))
         except:
