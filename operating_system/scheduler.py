@@ -14,6 +14,7 @@ class SchedulingInfo:
 
 class TimeSliceSchedInfo(SchedulingInfo):
     DEF_QUANTUM = 100
+    MINIMUM_QUANTUM= 1
     def __init__(self):
         SchedulingInfo.__init__(self)
         self.quantum= self.DEF_QUANTUM
@@ -70,9 +71,10 @@ class TimeSliceScheduler(Scheduler):
         if oldstate==RUNNABLE and newstate==RUNNING:
             #a process was put running. set timer for timeslice
             quantum= pcb.sched_info.quantum
+            quantum= max(TimeSliceSchedInfo.MINIMUM_QUANTUM,int(quantum))   #quantum must be integer, with a minimum
             log.debug("setting timer to "+str(quantum))
             self.os.timer_driver.unset_timer()  #since we may have not expired the process time slice
-            self.os.timer_driver.set_timer( max(1,int(quantum)) )   #minimum timeslice is 1
+            self.os.timer_driver.set_timer( quantum )
 
 class SignalledScheduler(TimeSliceScheduler):
     def __init__(self, os):
