@@ -3,7 +3,7 @@ import scheduler
 import logging
 log= logging.getLogger('os')
 
-
+SUPPRESS_LOGGING= True  #will suppress logging while executing idle process
 IDLE_PROCESS_CODE= '''
 NOOP
 JMP $0
@@ -26,8 +26,17 @@ class IdleProcessScheduler:
 
     def dequeue(self):
         try:
-            return self.wrapped_scheduler.dequeue() 
+            pcb= self.wrapped_scheduler.dequeue()
+            if SUPPRESS_LOGGING and hasattr(self, "logging_suppressed"):
+                log.setLevel(self.logging_suppressed)
+                delattr(self, "logging_suppressed")
+            return pcb
         except scheduler.NoMoreRunnableProcesses:
+            log.debug("dequeuing idle process")
+            if SUPPRESS_LOGGING and not hasattr(self, "logging_suppressed"):
+                log.warning("SUPPRESSING LOG OUTPUT until dequeuing any other process (than idle)")
+                self.logging_suppressed= log.level
+                log.setLevel(logging.WARNING)
             assert self.busy==False
             self.busy=True
             return self.idle_process            #only idle process is runnable...
