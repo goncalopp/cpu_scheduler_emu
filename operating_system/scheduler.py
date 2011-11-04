@@ -23,7 +23,6 @@ class OOneSchedInfo(TimeSliceSchedInfo):
     def __init__(self):
         TimeSliceSchedInfo.__init__(self)
         self.priority = 0
-        self.priotity_class = 0
         self.times_ran = 0
 
 class Scheduler:
@@ -156,16 +155,16 @@ class OOneScheduler(SignalledScheduler):
 
     def _signal_io_block(self, pcb):
         SignalledScheduler._signal_io_block(self, pcb)
-        pcb_priority =  pcb.sched_info.priority
         pcb.sched_info.times_ran +=1
-        if pcb_priority < self.PRIORITY_LVLS:
-            pcb_priority +=1
-            pcb.sched_info.quantum = pcb.sched_info.quantum * 0.90
+        if pcb.sched_info.priority < self.PRIORITY_LVLS:
+            pcb.sched_info.priority+= 1
+            pcb.sched_info.quantum *= 0.9
+            print pcb, pcb.sched_info.priority, pcb.sched_info.quantum
 
     def _signal_time_slice_end(self, pcb):
         SignalledScheduler._signal_time_slice_end(self, pcb)
-        pcb_priority = pcb.sched_info.priority
         pcb.sched_info.times_ran += 1
-        if pcb_priority > 0:
-            pcb_priority -= 1
-            pcb.sched_info.quantum = pcb.sched_info.quantum * 1/0.90
+        if pcb.sched_info.priority > 0:
+            pcb.sched_info.priority -= 1
+            pcb.sched_info.quantum *= (1/0.9)
+            print pcb, pcb.sched_info.priority, pcb.sched_info.quantum
