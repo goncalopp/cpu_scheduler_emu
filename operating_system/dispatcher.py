@@ -12,11 +12,15 @@ class AlreadyExecutingSomething( Exception ):
 class NotExecutingAnything( Exception ):
     pass
 
+class MultipleContextSwithInSameClock( Exception ):
+    pass
+
 class Dispatcher:
     def __init__(self, os):
         log.debug("initializing dispatcher")
         self.os= os
-        self.currently_executing= None
+        self.currently_executing= self.last_executing= None
+        self.last_switch_clock=-1
 
     def swap_processes(self):
         '''swaps currently executing process for another (per scheduler policy)'''
@@ -29,13 +33,17 @@ class Dispatcher:
     def start_next_process(self):
         '''starts next process (indicated by scheduler)'''
         log.debug("starting next process from scheduler")
+        current_clock= self.os.get_system_ticks()
+        if self.last_switch_clock==current_clock:
+            raise MultipleContextSwithInSameClock()
+        self.last_switch_clock= current_clock
         n_processes= len(self.os.process_manager.get_all_processes())
         if n_processes==0 or ( n_processes==1 and isinstance(self.os.scheduler, IdleProcessScheduler)):
             raise NoMoreProcesses("All processes have finished")
         new_pcb= self.os.scheduler.dequeue()
-        self.context_switch_to( new_pcb )
+        self._context_switch_to( new_pcb )
 
-    def context_switch_to(self, pcb):
+    def _context_switch_to(self, pcb):
         log.info("context switching cpu to "+str(pcb))
         if not self.currently_executing is None:
             raise AlreadyExecutingSomething()
@@ -51,6 +59,7 @@ class Dispatcher:
         assert pcb.state==RUNNING
         pcb.tss= self.os.machine.cpu.tss
         log.info("stopping running process. saved tss "+str(pcb.tss))
+        self.last_executing= pcb
         self.currently_executing=None
         return pcb
 
