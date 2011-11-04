@@ -25,10 +25,14 @@ class Dispatcher:
     def swap_processes(self):
         '''swaps currently executing process for another (per scheduler policy)'''
         log.debug("swapping processes")
-        pcb= self.stop_running_process()
-        pcb.changeState( RUNNABLE )
-        self.os.scheduler.enqueue( pcb )
-        self.start_next_process()
+        if self.last_switch_clock==self.os.get_system_ticks():
+            #rare situation where the "current" process is already a new one (switched in this clock by another means) 
+            log.warning("process was already swapped for another. not swapping...")
+        else:
+            pcb= self.stop_running_process()
+            pcb.changeState( RUNNABLE )
+            self.os.scheduler.enqueue( pcb )
+            self.start_next_process()
 
     def start_next_process(self):
         '''starts next process (indicated by scheduler)'''
@@ -74,5 +78,11 @@ class Dispatcher:
         return self.currently_executing
 
     def remove_current_process(self):
-        self.os.process_manager.remove_process( self.currently_executing.pid )
-        self.start_next_process()
+        log.debug("removing current process")
+        if self.last_switch_clock==self.os.get_system_ticks():
+            #rare situation where the "current" process is already a new one (switched in this clock by another means) 
+            log.warning("process was already swapped for another. removing last one...")
+            self.os.process_manager.remove_process( self.last_executing.pid )
+        else:
+            self.os.process_manager.remove_process( self.currently_executing.pid )
+            self.start_next_process()
