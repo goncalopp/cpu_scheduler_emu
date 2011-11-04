@@ -63,8 +63,6 @@ class Cpu:
         stepped= False
         while not stepped:
             if len( self.interrupt_queue )>0:
-                if len( self.interrupt_queue )>1:
-                    print "multiple!"
                 #executing interruption
                 interrupt= self.interrupt_queue[0]
                 try:
