@@ -28,6 +28,7 @@ def burn_cycles(n):
         return "NOOP\n"+instructions
 
 def generateProgram( program_duration, cpu_burst ):
+    cpu_burst -=1   #since 1 IO operation consumes a clock
     instructions= ""
     left= program_duration
     while left>0: 
