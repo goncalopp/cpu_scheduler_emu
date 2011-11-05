@@ -144,15 +144,18 @@ class OOneScheduler(SignalledScheduler):
 
     def dequeue(self):
         SignalledScheduler.dequeue(self)
-        def try_to_dequeue():
+        def dequeue_from_active():
             for l in self.active:
-                if len(l) > 0:
                     pcb= l.pop(0)
                     return pcb
-        try_to_dequeue()
-        self.active, self.expired = self.expired, self.active
-        try_to_dequeue()
-        raise NoMoreRunnableProcesses()
+        try:
+            return dequeue_from_active()
+        except IndexError:
+            try:
+                self.active, self.expired = self.expired, self.active
+                return dequeue_from_active()
+            except IndexError:
+                raise NoMoreRunnableProcesses()
 
     def oone_changestate(self, pcb, oldstate, newstate):
         if newstate==RUNNING:
@@ -160,7 +163,7 @@ class OOneScheduler(SignalledScheduler):
 
     def _signal_io_block(self, pcb):
         SignalledScheduler._signal_io_block(self, pcb)
-        if pcb.sched_info.priority < self.PRIORITY_LVLS:
+        if pcb.sched_info.priority < self.PRIORITY_LVLS-1:
             pcb.sched_info.priority+= 1
             pcb.sched_info.quantum *= 0.9
             print pcb, pcb.sched_info.priority, pcb.sched_info.quantum
