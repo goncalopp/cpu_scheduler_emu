@@ -133,29 +133,29 @@ class OOneScheduler(SignalledScheduler):
         self.expired = [[]]*self.PRIORITY_LVLS
 
     def enqueue(self, pcb):
-        Scheduler.enqueue(self, pcb)
+        SignalledScheduler.enqueue(self, pcb)
         pcb_priority = pcb.sched_info.priority  #check the process priority
         if pcb.sched_info.times_ran < 2 and pcb_priority >= self.interactive_threshold:
             self.active[pcb_priority].append(pcb)
         else:
             self.expired[pcb_priority].append(pcb)
+            pcb.sched_info.times_run=0
 
     def dequeue(self):
-        Scheduler.dequeue(self)
-        for l in self.active:
-            if len(l) > 0:
-                pcb= l.pop(0)
-                return pcb
+        SignalledScheduler.dequeue(self)
+        def try_to_dequeue():
+            for l in self.active:
+                if len(l) > 0:
+                    pcb= l.pop(0)
+                    pcb.sched_info.times_ran += 1
+                    return pcb
+        try_to_dequeue()
         self.active, self.expired = self.expired, self.active
-        for l in self.active:
-            if len(l) > 0:
-                pcb= l.pop(0)
-                return pcb
+        try_to_dequeue()
         raise NoMoreRunnableProcesses()
 
     def _signal_io_block(self, pcb):
         SignalledScheduler._signal_io_block(self, pcb)
-        pcb.sched_info.times_ran +=1
         if pcb.sched_info.priority < self.PRIORITY_LVLS:
             pcb.sched_info.priority+= 1
             pcb.sched_info.quantum *= 0.9
@@ -163,7 +163,6 @@ class OOneScheduler(SignalledScheduler):
 
     def _signal_time_slice_end(self, pcb):
         SignalledScheduler._signal_time_slice_end(self, pcb)
-        pcb.sched_info.times_ran += 1
         if pcb.sched_info.priority > 0:
             pcb.sched_info.priority -= 1
             pcb.sched_info.quantum *= (1/0.9)
