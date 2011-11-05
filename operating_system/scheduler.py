@@ -128,6 +128,7 @@ class OOneScheduler(SignalledScheduler):
     PRIORITY_LVLS = 4
     def __init__(self, os):
         SignalledScheduler.__init__(self, os)
+        self.os.process_manager.add_changestate_callback( self.oone_changestate )
         self.interactive_threshold = (int) (self.PRIORITY_LVLS/2)
         self.active = [[]]*self.PRIORITY_LVLS
         self.expired = [[]]*self.PRIORITY_LVLS
@@ -147,12 +148,15 @@ class OOneScheduler(SignalledScheduler):
             for l in self.active:
                 if len(l) > 0:
                     pcb= l.pop(0)
-                    pcb.sched_info.times_ran += 1
                     return pcb
         try_to_dequeue()
         self.active, self.expired = self.expired, self.active
         try_to_dequeue()
         raise NoMoreRunnableProcesses()
+
+    def oone_changestate(self, pcb, oldstate, newstate):
+        if newstate==RUNNING:
+            pcb.sched_info.times_ran+=1
 
     def _signal_io_block(self, pcb):
         SignalledScheduler._signal_io_block(self, pcb)
