@@ -54,6 +54,7 @@ class ProcessManager:
             self.os.dispatcher.stop_runnable_process( pcb )
         if pcb.state == RUNNING:
             self.os.dispatcher.stop_running_process()
+            pcb.changeState( RUNNABLE )
         pcb.changeState( TERMINATED )
         self.os.loader.unload( pcb )
 

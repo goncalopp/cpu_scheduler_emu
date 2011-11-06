@@ -25,6 +25,8 @@ class PCB:
             assert self.state in (BLOCKED,RUNNING)
         if new_state == BLOCKED:
             assert self.state == RUNNING
+        if new_state == TERMINATED:
+            assert self.state in (RUNNABLE, BLOCKED)
         self.changestate_callback( self, self.state, new_state)
         self.state= new_state
 
