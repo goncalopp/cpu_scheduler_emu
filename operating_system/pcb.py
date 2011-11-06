@@ -2,7 +2,7 @@ from hardware.cpu import TaskStateSegment
 import logging
 log= logging.getLogger('os')
 
-RUNNING, RUNNABLE, BLOCKED= range(3)
+RUNNING, RUNNABLE, BLOCKED, TERMINATED= range(4)
 
 class PCB:
     '''Process Control Block'''
@@ -18,7 +18,7 @@ class PCB:
         self.changestate_callback= changestate_callback #will be called on state change
 
     def changeState( self, new_state ):
-        assert new_state in (RUNNING, RUNNABLE, BLOCKED)
+        assert new_state in (RUNNING, RUNNABLE, BLOCKED, TERMINATED)
         if new_state == RUNNING:
             assert self.state == RUNNABLE
         if new_state == RUNNABLE:

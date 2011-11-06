@@ -1,4 +1,4 @@
-from pcb import PCB, RUNNING, RUNNABLE, BLOCKED
+from pcb import PCB, RUNNING, RUNNABLE, BLOCKED, TERMINATED
 import logging
 log= logging.getLogger('os')
 
@@ -54,6 +54,7 @@ class ProcessManager:
             self.os.dispatcher.stop_runnable_process( pcb )
         if pcb.state == RUNNING:
             self.os.dispatcher.stop_running_process()
+        pcb.changeState( TERMINATED )
         self.os.loader.unload( pcb )
 
     def get_all_processes(self):
