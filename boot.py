@@ -17,12 +17,12 @@ for program in programs:
     my_os.process_manager.start_program( program )
 my_os.kickstart()
 
-while True:
+for cycle in xrange(10**8):
     try:
         my_pc.step()
-    except Poweroff:
-        print "system has powered off"
-        break
     except NoMoreProcesses:
-        print "No more processes to execute"
+        print "All processes finished"
+        break
+    if cycle== cfg.runtime:
+        print "reached simulation runtime"
         break

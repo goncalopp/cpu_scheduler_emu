@@ -36,4 +36,4 @@ class InterruptHandler( TaskClass ):
 class Interrupt( TaskInstance ):
     def __init__(self, handler):
         assert isinstance(handler, InterruptHandler)
-        TaskInstance( self, handler )
+        TaskInstance.__init__( self, handler )

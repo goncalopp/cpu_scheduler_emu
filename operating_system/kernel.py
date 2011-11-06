@@ -1,3 +1,5 @@
+USE_IDLE_PROCESS= True
+
 import logging
 log= logging.getLogger('os')
 formatter = logging.Formatter('%(asctime)s\t%(levelname)s\t%(name)s\t%(module)s\t%(funcName)s\t%(message)s')
@@ -13,6 +15,8 @@ from scheduler          import *
 from loader             import Loader
 from process_manager    import ProcessManager
 from memory_allocator   import MemoryAllocator
+from idle_process       import IdleProcessScheduler
+from pcb                import RUNNABLE
 import interrupts 
 
 class Kernel:
@@ -30,7 +34,9 @@ class Kernel:
         self.process_manager=   ProcessManager          (self)
         self.scheduler=         OOneScheduler           (self)
         self.dispatcher=        Dispatcher              (self)
-        self.timer_driver.set_callback( self.dispatcher.timer_end )   #execute on timer interrupt
+        self.timer_driver.set_callback( self.dispatcher.swap_processes )   #execute on timer interrupt
+        if USE_IDLE_PROCESS:
+            IdleProcessScheduler    (self)
 
     def _initialize_interrupt_handlers(self):
         my_interrupt_handlers= [
@@ -49,3 +55,13 @@ class Kernel:
         '''starts running the first process'''
         log.debug("kickstarting system")
         self.dispatcher.start_next_process()
+
+    def shutdown(self):
+        '''shuts down system'''
+        log.info("Shutting down")
+        running= self.dispatcher.stop_running_process()
+        running.changeState( RUNNABLE )
+        for process in self.process_manager.get_all_processes():
+                self.process_manager.remove_process( process.pid )
+        for k in vars(self).keys(): #just to preserve an eventual
+            delattr(self, k)        #debugger's sanity

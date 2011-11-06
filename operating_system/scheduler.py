@@ -14,6 +14,7 @@ class SchedulingInfo:
 
 class TimeSliceSchedInfo(SchedulingInfo):
     DEF_QUANTUM = 100
+    MINIMUM_QUANTUM= 1
     def __init__(self):
         SchedulingInfo.__init__(self)
         self.quantum= self.DEF_QUANTUM
@@ -22,7 +23,6 @@ class OOneSchedInfo(TimeSliceSchedInfo):
     def __init__(self):
         TimeSliceSchedInfo.__init__(self)
         self.priority = 0
-        self.priotity_class = 0
         self.times_ran = 0
 
 class StrideSchedInfo(TimeSliceSchedInfo):
@@ -35,6 +35,8 @@ class Scheduler:
     def __init__(self, os):
         log.debug("initializing scheduler")
         self.os= os
+        self.os.process_manager.add_changestate_callback( self.scheduler_changestate )  #register for pcb state change
+
 
     def enqueue(self, pcb):
         log.debug("scheduler enqueueing process with PID {pid}".format(pid= pcb.pid))
@@ -49,10 +51,12 @@ class Scheduler:
         if newstate==RUNNING:
             #was put running
             pcb.sched_info.last_run_on= self.os.get_system_ticks()
-        if newstate==RUNNABLE or newstate==BLOCKED:
+            log.info("pcb "+str(pcb)+" is now running ("+str(pcb.sched_info.last_run_on))
+        if oldstate==RUNNING and (newstate==RUNNABLE or newstate==BLOCKED):
             #was stopped
             current_time= self.os.get_system_ticks()
             elapsed= current_time - pcb.sched_info.last_run_on
+            log.info("pcb "+str(pcb)+" stopped. runned for ("+str(elapsed))
             pcb.sched_info.user_time+= elapsed
 
 
@@ -72,9 +76,10 @@ class TimeSliceScheduler(Scheduler):
         if oldstate==RUNNABLE and newstate==RUNNING:
             #a process was put running. set timer for timeslice
             quantum= pcb.sched_info.quantum
+            quantum= max(TimeSliceSchedInfo.MINIMUM_QUANTUM,int(quantum))   #quantum must be integer, with a minimum
             log.debug("setting timer to "+str(quantum))
             self.os.timer_driver.unset_timer()  #since we may have not expired the process time slice
-            self.os.timer_driver.set_timer( int(quantum) )
+            self.os.timer_driver.set_timer( quantum )
 
 class SignalledScheduler(TimeSliceScheduler):
     def __init__(self, os):
@@ -103,7 +108,7 @@ class SignalledScheduler(TimeSliceScheduler):
 class RoundRobinScheduler(TimeSliceScheduler):
     INFO= TimeSliceSchedInfo
     def __init__(self, os):
-        Scheduler.__init__(self, os)
+        TimeSliceScheduler.__init__(self, os)
         self.queue = []
         
     def enqueue(self, pcb):
@@ -129,46 +134,52 @@ class OOneScheduler(SignalledScheduler):
     PRIORITY_LVLS = 4
     def __init__(self, os):
         SignalledScheduler.__init__(self, os)
+        self.os.process_manager.add_changestate_callback( self.oone_changestate )
         self.interactive_threshold = (int) (self.PRIORITY_LVLS/2)
         self.active = [[]]*self.PRIORITY_LVLS
         self.expired = [[]]*self.PRIORITY_LVLS
 
     def enqueue(self, pcb):
-        Scheduler.enqueue(self, pcb)
+        SignalledScheduler.enqueue(self, pcb)
         pcb_priority = pcb.sched_info.priority  #check the process priority
         if pcb.sched_info.times_ran < 2 and pcb_priority >= self.interactive_threshold:
             self.active[pcb_priority].append(pcb)
         else:
             self.expired[pcb_priority].append(pcb)
+            pcb.sched_info.times_run=0
 
     def dequeue(self):
-        Scheduler.dequeue(self)
-        for l in self.active:
-            if len(l) > 0:
-                pcb= l.pop(0)
-                return pcb
-        self.active, self.expired = self.expired, self.active
-        for l in self.active:
-            if len(l) > 0:
-                pcb= l.pop(0)
-                return pcb
-        raise NoMoreRunnableProcesses()
+        SignalledScheduler.dequeue(self)
+        def dequeue_from_active():
+            for l in self.active:
+                    pcb= l.pop(0)
+                    return pcb
+        try:
+            return dequeue_from_active()
+        except IndexError:
+            try:
+                self.active, self.expired = self.expired, self.active
+                return dequeue_from_active()
+            except IndexError:
+                raise NoMoreRunnableProcesses()
+
+    def oone_changestate(self, pcb, oldstate, newstate):
+        if newstate==RUNNING:
+            pcb.sched_info.times_ran+=1
 
     def _signal_io_block(self, pcb):
         SignalledScheduler._signal_io_block(self, pcb)
-        pcb_priority =  pcb.sched_info.priority
-        pcb.sched_info.times_ran +=1
-        if pcb_priority < self.PRIORITY_LVLS:
-            pcb_priority +=1
-            pcb.sched_info.quantum = pcb.sched_info.quantum * 0.90
+        if pcb.sched_info.priority < self.PRIORITY_LVLS-1:
+            pcb.sched_info.priority+= 1
+            pcb.sched_info.quantum *= 0.9
+            print pcb, pcb.sched_info.priority, pcb.sched_info.quantum
 
     def _signal_time_slice_end(self, pcb):
         SignalledScheduler._signal_time_slice_end(self, pcb)
-        pcb_priority = pcb.sched_info.priority
-        pcb.sched_info.times_ran += 1
-        if pcb_priority > 0:
-            pcb_priority -= 1
-            pcb.sched_info.quantum = pcb.sched_info.quantum * 1/0.90
+        if pcb.sched_info.priority > 0:
+            pcb.sched_info.priority -= 1
+            pcb.sched_info.quantum *= (1/0.9)
+            print pcb, pcb.sched_info.priority, pcb.sched_info.quantum
 
 class StrideScheduler(SignalledScheduler):
     INFO= StrideSchedInfo

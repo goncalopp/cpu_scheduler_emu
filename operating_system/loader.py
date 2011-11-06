@@ -18,7 +18,7 @@ class Loader:
         program.instructions.append( Instruction(INT, END_PROCESS_INTERRUPT) )
         mem= self.os.memory_allocator.allocate( len(program) )
         program.writeToRam( self.os.machine.ram, mem )
-        log.debug("loaded program into memory address "+str(mem))
+        log.info("loaded program into memory address "+str(mem))
         return program
 
     def unload(self, pcb):

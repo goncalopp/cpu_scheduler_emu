@@ -23,8 +23,8 @@ class IODriver:
         
     def io_interrupt_handler(self):
         '''called when I/O device has replied to last request'''
-        log.debug("handling io interrupt")
         pcb= self.pcb_queue.pop(0)      #pcb which made io request
+        log.debug("handling io interrupt - device reply for "+str(pcb))
         pcb.changeState( RUNNABLE )
         self.os.scheduler.enqueue( pcb) # is now ready to start again
         self.waiting=False
