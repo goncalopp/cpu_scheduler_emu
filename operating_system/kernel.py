@@ -15,7 +15,8 @@ from scheduler          import *
 from loader             import Loader
 from process_manager    import ProcessManager
 from memory_allocator   import MemoryAllocator
-from idle_process        import IdleProcessScheduler
+from idle_process       import IdleProcessScheduler
+from pcb                import RUNNABLE
 import interrupts 
 
 class Kernel:
@@ -54,3 +55,13 @@ class Kernel:
         '''starts running the first process'''
         log.debug("kickstarting system")
         self.dispatcher.start_next_process()
+
+    def shutdown(self):
+        '''shuts down system'''
+        log.info("Shutting down")
+        running= self.dispatcher.stop_running_process()
+        running.changeState( RUNNABLE )
+        for process in self.process_manager.get_all_processes():
+                self.process_manager.remove_process( process.pid )
+        for k in vars(self).keys(): #just to preserve an eventual
+            delattr(self, k)        #debugger's sanity

@@ -73,11 +73,13 @@ class Dispatcher:
         self.os.scheduler.remove( pcb )
 
     def get_currently_executing_pcb(self):
+        '''get the currently executing process'''
         if self.currently_executing is None:
             raise NotExecutingAnything
         return self.currently_executing
 
     def remove_current_process(self):
+        '''terminates the currently executing process, and starts next one'''
         log.debug("removing current process")
         if self.last_switch_clock==self.os.get_system_ticks():
             #rare situation where the "current" process is already a new one (switched in this clock by another means) 
