@@ -17,15 +17,15 @@ class OutOfRam( Exception ):
 class RamBlock:
     '''represents a ram block (a start and end address'''
     def __init__(self, start_address, end_address):
-        assert start_address<end_address
+        assert start_address<=end_address
         self.start, self.end= start_address, end_address
 
     def __len__(self):
-        return self.end-self.start
+        return self.end-self.start+1
 
     def partition(self, offset):
         '''partitions this block into two'''
-        if len(self)<offset+1:
+        if len(self)<=offset:
             raise NotEnoughRamInBlock()
         else:
             b1= RamBlock(self.start, self.start+offset-1)
