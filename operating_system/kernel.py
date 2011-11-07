@@ -10,7 +10,7 @@ log.setLevel(logging.DEBUG)
 from hardware           import machine
 from io_driver          import IODriver
 from timer_driver       import TimerDriver
-from dispatcher         import Dispatcher
+from dispatcher         import Dispatcher, NotExecutingAnything
 from scheduler          import *
 from loader             import Loader
 from process_manager    import ProcessManager
@@ -59,8 +59,11 @@ class Kernel:
     def shutdown(self):
         '''shuts down system'''
         log.info("Shutting down")
-        running= self.dispatcher.stop_running_process()
-        running.changeState( RUNNABLE )
+        try:
+            running= self.dispatcher.stop_running_process()
+            running.changeState( RUNNABLE )
+        except NotExecutingAnything:
+            pass
         for process in self.process_manager.get_all_processes():
                 self.process_manager.remove_process( process.pid )
         for k in vars(self).keys(): #just to preserve an eventual
