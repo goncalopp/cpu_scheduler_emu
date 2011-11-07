@@ -23,6 +23,12 @@ class OOneSchedInfo(TimeSliceSchedInfo):
         self.priority = 0
         self.times_ran = 0
 
+class StrideSchedInfo(TimeSliceSchedInfo):
+    def __init__(self):
+        SchedulingInfo.__init__(self)
+        self.bribe = 1
+        self.meter_rate = self.metered_time = 1/self.bribe    
+
 class Scheduler:
     def __init__(self, os):
         log.debug("initializing scheduler")
@@ -158,3 +164,47 @@ class OOneScheduler(SignalledScheduler):
             pcb.sched_info.priority -= 1
             pcb.sched_info.quantum *= (1/0.9)
             print pcb, pcb.sched_info.priority, pcb.sched_info.quantum
+
+class StrideScheduler(SignalledScheduler):
+    INFO= StrideSchedInfo
+    def __init__(self, os):
+        Scheduler.__init__(self, os)
+        self.runqueue = []
+        self.total_tickets = 0      #total number of bribery tickets
+        self.ficticious_meter = 0   #ficticious meter for dynamic process initialization
+
+    def enqueue(self, pcb):
+        Scheduler.enqueue(self, pcb)        
+        self.runqueue.append(pcb)
+        self.runqueue.sort(key= lambda pcb: pcb.sched_info.metered_time)   #sort runqueue by ascending meters
+        self.total_tickets += pcb.sched_info.bribe
+
+    def dequeue(self):
+        Scheduler.dequeue(self)
+        if len(self.runqueue) > 0:
+            pcb = self.runqueue.pop(0)
+            self.total_tickets -= pcb.sched_info.bribe
+            return pcb
+        else:
+            raise NoMoreRunnableProcesses()
+
+    def _signal_io_block(self, pcb):
+        SignalledScheduler._signal_io_block(self, pcb)
+        pcb.shed_info.bribe += 1
+        pcb.sched_info.meter_rate = 1/pcb.sched_info.bribe
+        self.total_tickets += 1
+        self.ficticious_meter += 1/self.total_tickets
+
+    def _signal_time_slice_end(self, pcb):
+        SignalledScheduler._signal_time_slice_end(self, pcb)
+        pcb.sched_info.bribe -= 1
+        pcb.sched_info.meter_rate = 1/pcb.sched_info.bribe
+        self.total_tickets -= 1
+        self.ficticious_meter += 1/self.total_tickets
+
+    def set_bribe( self,pcb, bribe):
+        pcb.sched_info.bribe = bribe
+        pcb.sched_info.meter_rate = 1/bribe
+
+    def update_meter_to_ficticious(self, pcb):
+        pcb.shed_info.metered_time = self.ficticious_meter
