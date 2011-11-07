@@ -57,5 +57,6 @@ def generateProgramsFromConfig( c ):
                 break
             except CannotGenerateProgram:
                 print "couldn't generate program with given characteristics, trying again"
+        program.duration= program_duration #hack to save the program duration, for process statistics
         programs.append( program )
     return programs
