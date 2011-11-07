@@ -14,15 +14,16 @@ class PCB:
         self.tss= TaskStateSegment()        #cpu context identifier
         self.tss.PC= pc                     #address of first instruction
         self.sched_info=sched_info          #sheduling info
-        self.state= RUNNABLE
         self.changestate_callback= changestate_callback #will be called on state change
+        self.state= None
+        self.changeState( RUNNABLE, just_started= True )
 
-    def changeState( self, new_state ):
+    def changeState( self, new_state, just_started= False):
         assert new_state in (RUNNING, RUNNABLE, BLOCKED, TERMINATED)
         if new_state == RUNNING:
             assert self.state == RUNNABLE
         if new_state == RUNNABLE:
-            assert self.state in (BLOCKED,RUNNING)
+            assert (self.state in (BLOCKED,RUNNING)) or just_started
         if new_state == BLOCKED:
             assert self.state == RUNNING
         if new_state == TERMINATED:

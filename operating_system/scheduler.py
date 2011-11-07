@@ -8,9 +8,7 @@ class NoMoreRunnableProcesses( Exception ):
 
 class SchedulingInfo:
     def __init__(self):
-        self.user_time = 0
-        self.system_time = 0
-        self.last_run_on= 0
+        pass
 
 class TimeSliceSchedInfo(SchedulingInfo):
     DEF_QUANTUM = 100
@@ -29,8 +27,6 @@ class Scheduler:
     def __init__(self, os):
         log.debug("initializing scheduler")
         self.os= os
-        self.os.process_manager.add_changestate_callback( self.scheduler_changestate )  #register for pcb state change
-
 
     def enqueue(self, pcb):
         log.debug("scheduler enqueueing process with PID {pid}".format(pid= pcb.pid))
@@ -40,18 +36,6 @@ class Scheduler:
     def dequeue(self):
         log.debug("scheduler dequeueing process")
         pass
-
-    def scheduler_changestate(self, pcb, oldstate, newstate):
-        if newstate==RUNNING:
-            #was put running
-            pcb.sched_info.last_run_on= self.os.get_system_ticks()
-            log.info("pcb "+str(pcb)+" is now running ("+str(pcb.sched_info.last_run_on))
-        if oldstate==RUNNING and (newstate==RUNNABLE or newstate==BLOCKED):
-            #was stopped
-            current_time= self.os.get_system_ticks()
-            elapsed= current_time - pcb.sched_info.last_run_on
-            log.info("pcb "+str(pcb)+" stopped. runned for ("+str(elapsed))
-            pcb.sched_info.user_time+= elapsed
 
 
     def new_sched_info(self):
@@ -82,7 +66,7 @@ class SignalledScheduler(TimeSliceScheduler):
 
     def signaled_changestate(self, pcb, oldstate, newstate):
         if oldstate==RUNNING and newstate==RUNNABLE:
-            if self.os.get_system_ticks() - pcb.sched_info.last_run_on >= pcb.sched_info.quantum:
+            if self.os.machine.timer.time==0:
                 log.debug("detected timeslice end on pcb "+str(pcb))
                 self._signal_time_slice_end( pcb )
         if oldstate==RUNNING and newstate==BLOCKED:
