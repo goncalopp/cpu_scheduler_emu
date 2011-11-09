@@ -17,7 +17,23 @@ class StateChange:
         self.clock, self.pid, self.state= clock, pid, newstate
     def __repr__(self):
         return "\t".join([str(self.clock), str(self.pid),states_dict[self.state]])
-    
+        
+class ProcessInfo:
+    def __init__(self, program_duration, pid):
+        self.pid= pid
+        self._program_duration= program_duration
+        self.waiting_time= 0
+        self.blocked_times= 0
+        self.start_clock= -1
+        self.termination_clock= -1
+        self.executed_clocks= 0
+    def turnaround(self):
+        assert 0 <= self.start_clock <= self.termination_clock
+        return self.termination_clock-self.start_clock
+    def terminated(self):
+        return self.termination_clock>=0
+
+
 
 class ProcessTracer:
     def __init__(self, os):
@@ -33,9 +49,10 @@ class ProcessTracer:
 
     def process( self, pids_durations ):
         assert not self.processed
-        pids_durations[0]= float("inf") #duration of idle process is infinite...
         all_pids= set([cs.pid for cs in self.trace])
-        assert all_pids==set(pids_durations.keys())
+        pids_durations[0]= float("inf") #duration of idle process is infinite...
+        tmp=all_pids.difference(set(pids_durations.keys()))
+        assert len(tmp)==0 or (len(tmp)==1 and 0 in tmp)    #function was given the duration of all processes
         last_states= {}
         self.trace.insert(0,StateChange(0, 0, RUNNABLE))  #workaround, since we don't receive this notification (process statechange event generated before callbacks are installed)
         i=0
@@ -64,12 +81,47 @@ class ProcessTracer:
             if last_state.state==RUNNING:
                 #stopped running
                 runned_for= s.clock-last_state.clock
-                
                 s.clocks_done+= runned_for
                 s.clocks_left-= runned_for
             last_states[pid]= s
         self.processed=True
 
+    def calculate_general_statistics(self, io_operation_duration, programs_durations, trace):
+        assert self.processed
+        process_info= {}
+        last_states= {}
+        for s in self.trace:
+            pid= s.pid
+            try:
+                last_state= last_states[pid]
+            except KeyError:
+                assert s.state==RUNNABLE
+                last_states[pid]= s
+                info= process_info[pid]= ProcessInfo( programs_durations[pid], pid )
+                info.start_clock= s.clock
+                continue
+            assert pid == last_state.pid
+            info = process_info[pid]
+            if last_state.state==RUNNING and s.state==BLOCKED:
+                #stopped running
+                clocks_executed= s.clock-last_state.clock
+                info.executed_clocks+= s.clock-last_state.clock
+                info.blocked_times+=1
+            if last_state.state==RUNNING and s.state==RUNNABLE:
+                info.executed_clocks+= s.clock-last_state.clock
+            if last_state.state==RUNNABLE and s.state==RUNNING:
+                info.waiting_time+= s.clock-last_state.clock
+            if s.state==TERMINATED:
+                if s.clocks_left==0:
+                    info.terminated_clock= s.clock
+            assert info.executed_clocks==s.clocks_done
+            last_states[pid]= s
+        total_time=trace[-1].clock
+        cpu_busy_clocks= sum(map(lambda i: i.executed_clocks, [i for i in process_info.values() if i.pid!=0]))
+        total_io_operations= sum(map(lambda i: i.blocked_times, process_info.values()))
+        io_busy_clocks= io_operation_duration*total_io_operations
+        import pdb; pdb.set_trace()
+        return (total_time, cpu_busy_clocks, io_busy_clocks)
     def get_pid_trace(self, pid):
         states= filter( lambda sc: sc.pid==pid, self.trace)
 
@@ -79,7 +131,3 @@ class ProcessTracer:
     def __repr__(self):
         assert self.processed
         return "\n".join( [ "\t".join(map(str, [state, state.clocks_done, state.clocks_left])) for state in self.trace])
-
-def print_prof_trace( changestates, pids_durations  ):
-    '''pids_durations is a dictionary'''
-    
