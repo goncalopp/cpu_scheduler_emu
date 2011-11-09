@@ -24,14 +24,15 @@ for program in programs:
 my_os.kickstart()
 
 for cycle in xrange(10**8):
+    if cycle== cfg.runtime:
+        print "reached simulation runtime"
+        break
     try:
         my_pc.step()
     except NoMoreProcesses:
         print "All processes finished"
         break
-    if cycle== cfg.runtime:
-        print "reached simulation runtime"
-        break
+
 my_os.shutdown()
 
 program_durations= dict([ (program.pid, program.duration) for program in programs])
