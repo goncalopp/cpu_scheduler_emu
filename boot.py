@@ -19,14 +19,16 @@ def cli_choice(question, answers):
         except (ValueError, IndexError):
             print "Invalid choice"
 
-config_files= os.listdir("configs")
-cfg_file= cli_choice( "Please choose the config file to use:",config_files )
-#cfg_file= "configs/example_config.cfg" #uncomment here and comment previous line for no prompts 
 TRACE_FILE= "process_trace.txt"
 STAT_FILE= "statistics.txt"
+CONFIG_DIR= "configs"
+
+config_files= os.listdir("configs")
+cfg_file= cli_choice( "Please choose the config file to use:",config_files )
+#cfg_file= "example_config.cfg" #uncomment here and comment previous line for no prompts 
 
 print "parsing config file"
-cfg= config.configFromFile("configs/example_config.cfg")
+cfg= config.configFromFile( os.path.join( CONFIG_DIR, cfg_file ))
 print "generating programs"
 programs= program_generation.generateProgramsFromConfig(cfg)
 
