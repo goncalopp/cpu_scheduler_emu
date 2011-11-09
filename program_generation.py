@@ -39,8 +39,7 @@ def generateProgram( program_duration, cpu_burst ):
             break
         instructions+="INT 2\n"
         left -=1    #io operation burns one cpu clock too
-    if left!=0:
-        raise CannotGenerateProgram("Failed to generate program with given number of instructions")
+    assert left==0
     return programFromString(instructions)
 
 def generateProgramsFromConfig( c ):
