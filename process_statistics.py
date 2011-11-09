@@ -116,7 +116,7 @@ class ProcessTracer:
                 info.waiting_time+= s.clock-last_state.clock
             if s.state==TERMINATED:
                 if s.clocks_left==0:
-                    info.terminated_clock= s.clock
+                    info.termination_clock= s.clock
             assert info.executed_clocks==s.clocks_done
             last_states[pid]= s
         return process_info
