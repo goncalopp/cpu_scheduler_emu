@@ -123,11 +123,13 @@ class Cpu:
         try:
             interrupt= Interrupt( self.memory._read_interrupt_handler(interrupt_number) )
             self.interrupt_queue.append(interrupt)
+            from machine import INTERRUPT_PRIORITIES
+            self.interrupt_queue.sort( key= lambda i:INTERRUPT_PRIORITIES[i.task_class.number] )   #sort interrupts by priority
             self._save_tss()    #each time an interruption is executed, the TSS is saved
             log.debug("generated interrupt "+str(interrupt_number))
         except:
             raise NoSuchInterrupt("Error running interrupt: "+str(interrupt_number))
 
     def set_interrupt_handler(self, interrupt_number, cpu_clock_duration, function):
-        self.memory._write_interrupt_handler( interrupt_number, InterruptHandler(str(interrupt_number), cpu_clock_duration, function))
+        self.memory._write_interrupt_handler( interrupt_number, InterruptHandler(interrupt_number, cpu_clock_duration, function))
     
