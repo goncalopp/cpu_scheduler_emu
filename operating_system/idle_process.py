@@ -16,7 +16,7 @@ class IdleProcessScheduler:
         assert isinstance(os.scheduler, scheduler.TimeSliceScheduler)   #OS scheduler must support time slices for idle process to work...
         self.wrapped_scheduler= os.scheduler    #save kernel scheduler
         os.scheduler= self                      #substitute it by wrapper
-        for f_name in ("new_sched_info", "remove"):
+        for f_name in ("new_sched_info",):
             #wrap untouched functions
             setattr(self, f_name, getattr(self.wrapped_scheduler, f_name))
         self.busy= True #must be true since process_manager.start_program enqueues it
@@ -47,3 +47,7 @@ class IdleProcessScheduler:
             self.busy= False
         else:
             self.wrapped_scheduler.enqueue(pcb)
+
+    def remove(self, pcb):
+        if pcb!=self.idle_process:
+            self.wrapped_scheduler.remove( pcb )

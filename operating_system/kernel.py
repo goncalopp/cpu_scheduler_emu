@@ -32,7 +32,7 @@ class Kernel:
         self.io_driver=         IODriver                (self)
         self.timer_driver=      TimerDriver             (self)
         self.process_manager=   ProcessManager          (self)
-        self.scheduler=         OOneScheduler           (self)
+        self.scheduler=         RoundRobinScheduler           (self)
         self.dispatcher=        Dispatcher              (self)
         self.timer_driver.set_callback( self.dispatcher.swap_processes )   #execute on timer interrupt
         if USE_IDLE_PROCESS:
@@ -62,6 +62,7 @@ class Kernel:
         try:
             running= self.dispatcher.stop_running_process()
             running.changeState( RUNNABLE )
+            self.scheduler.enqueue( running )   #must, to preserve consistency. We'll remove it on the next for cycle
         except NotExecutingAnything:
             pass
         for process in self.process_manager.get_all_processes():
