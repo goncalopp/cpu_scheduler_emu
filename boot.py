@@ -38,3 +38,4 @@ my_os.shutdown()
 program_durations= dict([ (program.pid, program.duration) for program in programs])
 tracer.process(program_durations)
 print tracer
+print tracer.get_statistics(cfg.iotime, program_durations)

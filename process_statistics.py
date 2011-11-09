@@ -27,10 +27,13 @@ class ProcessInfo:
         self.start_clock= -1
         self.termination_clock= -1
         self.executed_clocks= 0
+    def __repr__(self):
+        s= "ProcessInfo for PID "+str(self.pid)+"\n"
+        return s+"\t"+"\n\t".join([k+"\t"+str(v) for k,v in vars(self).items()])
     def turnaround(self):
         assert 0 <= self.start_clock <= self.termination_clock
         return self.termination_clock-self.start_clock
-    def terminated(self):
+    def completed(self):
         return self.termination_clock>=0
 
 
@@ -86,7 +89,7 @@ class ProcessTracer:
             last_states[pid]= s
         self.processed=True
 
-    def calculate_general_statistics(self, io_operation_duration, programs_durations, trace):
+    def calculate_process_info(self, programs_durations):
         assert self.processed
         process_info= {}
         last_states= {}
@@ -116,12 +119,31 @@ class ProcessTracer:
                     info.terminated_clock= s.clock
             assert info.executed_clocks==s.clocks_done
             last_states[pid]= s
-        total_time=trace[-1].clock
-        cpu_busy_clocks= sum(map(lambda i: i.executed_clocks, [i for i in process_info.values() if i.pid!=0]))
-        total_io_operations= sum(map(lambda i: i.blocked_times, process_info.values()))
-        io_busy_clocks= io_operation_duration*total_io_operations
-        import pdb; pdb.set_trace()
-        return (total_time, cpu_busy_clocks, io_busy_clocks)
+        return process_info
+
+    def get_statistics(self, io_operation_duration, programs_durations):
+        pi= self.calculate_process_info( programs_durations )
+        processes= [p for p in pi.values() if p.pid!=0] #don't include idle process
+        completed_processes= [i for i in processes if i.completed()]
+        total_io_operations= sum( [i.blocked_times for i in processes])
+
+        total_time= self.trace[-1].clock
+        cpu_busy_clocks= sum([i.executed_clocks for i in processes])
+        io_busy_clocks= io_operation_duration*total_io_operations   # meh...
+        
+        cpu_usage= float(cpu_busy_clocks) / total_time
+        io_usage= float(io_busy_clocks) / total_time
+        throughput= float( len(completed_processes) ) / total_time        #per time unit
+        turnaround= float(sum( [c.turnaround() for c in completed_processes])) / len(processes)
+        waiting_time= float(sum( [c.waiting_time for c in completed_processes])) / len(processes)
+        s="Global (mean or total) Statistics:"+"\n"
+        for k in ("total_time", "cpu_usage", "io_usage", "throughput", "turnaround", "waiting_time"):
+            s+= k+"\t"+str(locals()[k])+"\n"
+        s+="-------------------------------------------\n"
+        s+= "\n".join([str(p) for p in pi.values() if p.pid!=0])
+        return s
+
+
     def get_pid_trace(self, pid):
         states= filter( lambda sc: sc.pid==pid, self.trace)
 
