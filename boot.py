@@ -24,8 +24,8 @@ STAT_FILE= "statistics.txt"
 CONFIG_DIR= "configs"
 
 config_files= os.listdir("configs")
-cfg_file= cli_choice( "Please choose the config file to use:",config_files )
-#cfg_file= "example_config.cfg" #uncomment here and comment previous line for no prompts 
+#cfg_file= cli_choice( "Please choose the config file to use:",config_files )
+cfg_file= "ten_processes.cfg" #uncomment here and comment previous line for no prompts 
 
 print "parsing config file"
 cfg= config.configFromFile( os.path.join( CONFIG_DIR, cfg_file ))
@@ -65,6 +65,10 @@ my_os.shutdown()
 
 tracer.process(program_durations)
 print "writing process trace to "+TRACE_FILE+" (PID 0 is the idle process)"
-open(TRACE_FILE, "w").write( str(tracer) )
+trace= str(tracer)
+#print trace
+open(TRACE_FILE, "w").write( trace )
 print "writing statistics to "+STAT_FILE
-open(STAT_FILE, "w").write( tracer.get_statistics(cfg.iotime, program_durations) )
+stats= tracer.get_statistics(cfg.iotime, program_durations)
+print stats[:200]   #only first 200 chars
+open(STAT_FILE, "w").write( stats )
