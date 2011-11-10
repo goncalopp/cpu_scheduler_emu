@@ -11,13 +11,15 @@ from hardware           import machine
 from io_driver          import IODriver
 from timer_driver       import TimerDriver
 from dispatcher         import Dispatcher, NotExecutingAnything
-from scheduler          import *
+from scheduler          import RoundRobinScheduler, OOneScheduler, StrideScheduler
 from loader             import Loader
 from process_manager    import ProcessManager
 from memory_allocator   import MemoryAllocator
 from idle_process       import IdleProcessScheduler
 from pcb                import RUNNABLE
 import interrupts 
+
+SCHEDULER_CLASS= StrideScheduler
 
 class Kernel:
     def __init__(self, machine):
@@ -30,7 +32,7 @@ class Kernel:
         self.io_drivers= [IODriver(self, self.machine.ios[x]) for x in xrange(self.machine.NUMBER_OF_IO_DEVICES)]
         self.timer_driver=      TimerDriver             (self)
         self.process_manager=   ProcessManager          (self)
-        self.scheduler=         StrideScheduler         (self)
+        self.scheduler=         SCHEDULER_CLASS         (self)
         self.dispatcher=        Dispatcher              (self)
         self._initialize_interrupt_handlers()
         self.loader=            Loader                  (self)

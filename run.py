@@ -4,7 +4,10 @@ import sys, os
 sys.path.append("operating_system")
 import boot
 import config
+import kernel
+from scheduler import RoundRobinScheduler, OOneScheduler, StrideScheduler
 
+SCHEDULERS= (RoundRobinScheduler, OOneScheduler, StrideScheduler)
 
 def cli_choice(question, answers, return_index=False):
     n= len(answers)
@@ -37,6 +40,8 @@ def run_correctness_tests():
         test.verify( pc.ram, test.program.process_start_address )
         print "test",test.name,"passed!"    #since if it doesn't, a exception is raised
 
+sched_index= cli_choice("Choose a scheduler:", map(str,SCHEDULERS), return_index=True)
+kernel.SCHEDULER_CLASS= SCHEDULERS[sched_index]
 if cli_choice("What to do?", ("Run simulation from a config file","Run correctness checks"), return_index=True)==0:
     config_files= os.listdir( CONFIG_DIR)
     cfg_file= cli_choice( "Please choose the config file to use:",config_files )
