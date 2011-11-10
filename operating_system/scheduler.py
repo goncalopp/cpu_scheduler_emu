@@ -127,8 +127,8 @@ class OOneScheduler(SignalledScheduler):
         SignalledScheduler.__init__(self, os)
         self.os.process_manager.add_changestate_callback( self.oone_changestate )
         self.interactive_threshold = (int) (self.PRIORITY_LVLS/2)
-        self.active = [[]]*self.PRIORITY_LVLS
-        self.expired = [[]]*self.PRIORITY_LVLS
+        self.active = [ [] for x in range(self.PRIORITY_LVLS)]
+        self.expired = [ [] for x in range(self.PRIORITY_LVLS)]
 
     def enqueue(self, pcb):
         SignalledScheduler.enqueue(self, pcb)
@@ -137,22 +137,23 @@ class OOneScheduler(SignalledScheduler):
             self.active[pcb_priority].append(pcb)
         else:
             self.expired[pcb_priority].append(pcb)
-            pcb.sched_info.times_run=0
+            pcb.sched_info.times_ran=0
 
     def dequeue(self):
         SignalledScheduler.dequeue(self)
         def dequeue_from_active():
-            for l in self.active:
+            for l in reversed(self.active):
+                try:
                     pcb= l.pop(0)
                     return pcb
+                except IndexError:
+                    pass
+            raise NoMoreRunnableProcesses()
         try:
             return dequeue_from_active()
-        except IndexError:
-            try:
-                self.active, self.expired = self.expired, self.active
-                return dequeue_from_active()
-            except IndexError:
-                raise NoMoreRunnableProcesses()
+        except NoMoreRunnableProcesses:
+            self.active, self.expired = self.expired, self.active
+            return dequeue_from_active()
 
     def oone_changestate(self, pcb, oldstate, newstate):
         if newstate==RUNNING:
@@ -163,14 +164,12 @@ class OOneScheduler(SignalledScheduler):
         if pcb.sched_info.priority < self.PRIORITY_LVLS-1:
             pcb.sched_info.priority+= 1
             pcb.sched_info.quantum *= 0.9
-            print pcb, pcb.sched_info.priority, pcb.sched_info.quantum
 
     def _signal_time_slice_end(self, pcb):
         SignalledScheduler._signal_time_slice_end(self, pcb)
         if pcb.sched_info.priority > 0:
             pcb.sched_info.priority -= 1
             pcb.sched_info.quantum *= (1/0.9)
-            print pcb, pcb.sched_info.priority, pcb.sched_info.quantum
 
     def remove(self, pcb):
         found = 0
