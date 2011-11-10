@@ -39,8 +39,7 @@ def generateProgram( program_duration, cpu_burst ):
             break
         instructions+="INT 2\n"
         left -=1    #io operation burns one cpu clock too
-    if left!=0:
-        raise CannotGenerateProgram("Failed to generate program with given number of instructions")
+    assert left==0
     return programFromString(instructions)
 
 def generateProgramsFromConfig( c ):
@@ -51,12 +50,14 @@ def generateProgramsFromConfig( c ):
         while True:
             program_duration= int(random.normalvariate( c.meandev, c.standdev ))
             cpu_burst= c.bursts[i]
-            print "generating program with duration",program_duration,"and cpu_burst",cpu_burst
+            #print "generating program with duration",program_duration,"and cpu_burst",cpu_burst
             try:
                 program= generateProgram( program_duration, cpu_burst )
                 break
             except CannotGenerateProgram:
-                print "couldn't generate program with given characteristics, trying again"
+                if c.standdev==0:
+                    raise CannotGenerateProgram("I cannot generate a program with this number of cycles, and standdev is 0...")
+                #print "couldn't generate program with given characteristics, trying again"
         program.duration= program_duration #hack to save the program duration, for process statistics
         programs.append( program )
     return programs

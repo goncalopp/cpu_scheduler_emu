@@ -17,7 +17,26 @@ class StateChange:
         self.clock, self.pid, self.state= clock, pid, newstate
     def __repr__(self):
         return "\t".join([str(self.clock), str(self.pid),states_dict[self.state]])
-    
+        
+class ProcessInfo:
+    def __init__(self, program_duration, pid):
+        self.pid= pid
+        self._program_duration= program_duration
+        self.waiting_time= 0
+        self.blocked_times= 0
+        self.start_clock= -1
+        self.termination_clock= -1
+        self.executed_clocks= 0
+    def __repr__(self):
+        s= "ProcessInfo for PID "+str(self.pid)+"\n"
+        return s+"\t"+"\n\t".join([k+"\t"+str(v) for k,v in vars(self).items()])
+    def turnaround(self):
+        assert 0 <= self.start_clock <= self.termination_clock
+        return self.termination_clock-self.start_clock
+    def completed(self):
+        return self.termination_clock>=0
+
+
 
 class ProcessTracer:
     def __init__(self, os):
@@ -33,9 +52,10 @@ class ProcessTracer:
 
     def process( self, pids_durations ):
         assert not self.processed
-        pids_durations[0]= float("inf") #duration of idle process is infinite...
         all_pids= set([cs.pid for cs in self.trace])
-        assert all_pids==set(pids_durations.keys())
+        pids_durations[0]= float("inf") #duration of idle process is infinite...
+        tmp=all_pids.difference(set(pids_durations.keys()))
+        assert len(tmp)==0 or (len(tmp)==1 and 0 in tmp)    #function was given the duration of all processes
         last_states= {}
         self.trace.insert(0,StateChange(0, 0, RUNNABLE))  #workaround, since we don't receive this notification (process statechange event generated before callbacks are installed)
         i=0
@@ -64,11 +84,65 @@ class ProcessTracer:
             if last_state.state==RUNNING:
                 #stopped running
                 runned_for= s.clock-last_state.clock
-                
                 s.clocks_done+= runned_for
                 s.clocks_left-= runned_for
             last_states[pid]= s
         self.processed=True
+
+    def calculate_process_info(self, programs_durations):
+        assert self.processed
+        process_info= {}
+        last_states= {}
+        for s in self.trace:
+            pid= s.pid
+            try:
+                last_state= last_states[pid]
+            except KeyError:
+                assert s.state==RUNNABLE
+                last_states[pid]= s
+                info= process_info[pid]= ProcessInfo( programs_durations[pid], pid )
+                info.start_clock= s.clock
+                continue
+            assert pid == last_state.pid
+            info = process_info[pid]
+            if last_state.state==RUNNING and s.state==BLOCKED:
+                #stopped running
+                clocks_executed= s.clock-last_state.clock
+                info.executed_clocks+= s.clock-last_state.clock
+                info.blocked_times+=1
+            if last_state.state==RUNNING and s.state==RUNNABLE:
+                info.executed_clocks+= s.clock-last_state.clock
+            if last_state.state==RUNNABLE and s.state==RUNNING:
+                info.waiting_time+= s.clock-last_state.clock
+            if s.state==TERMINATED:
+                if s.clocks_left==0:
+                    info.termination_clock= s.clock
+            assert info.executed_clocks==s.clocks_done
+            last_states[pid]= s
+        return process_info
+
+    def get_statistics(self, io_operation_duration, programs_durations):
+        pi= self.calculate_process_info( programs_durations )
+        processes= [p for p in pi.values() if p.pid!=0] #don't include idle process
+        completed_processes= [i for i in processes if i.completed()]
+        total_io_operations= sum( [i.blocked_times for i in processes])
+
+        total_time= self.trace[-1].clock
+        cpu_busy_clocks= sum([i.executed_clocks for i in processes])
+        io_busy_clocks= io_operation_duration*total_io_operations   # meh...
+        
+        cpu_usage= float(cpu_busy_clocks) / total_time
+        io_usage= float(io_busy_clocks) / total_time
+        throughput= float( len(completed_processes) ) / total_time        #per time unit
+        turnaround= float(sum( [c.turnaround() for c in completed_processes])) / len(processes)
+        waiting_time= float(sum( [c.waiting_time for c in completed_processes])) / len(processes)
+        s="Global (mean or total) Statistics:"+"\n"
+        for k in ("total_time", "cpu_usage", "io_usage", "throughput", "turnaround", "waiting_time"):
+            s+= k+"\t"+str(locals()[k])+"\n"
+        s+="-------------------------------------------\n"
+        s+= "\n".join([str(p) for p in pi.values() if p.pid!=0])
+        return s
+
 
     def get_pid_trace(self, pid):
         states= filter( lambda sc: sc.pid==pid, self.trace)
@@ -79,7 +153,3 @@ class ProcessTracer:
     def __repr__(self):
         assert self.processed
         return "\n".join( [ "\t".join(map(str, [state, state.clocks_done, state.clocks_left])) for state in self.trace])
-
-def print_prof_trace( changestates, pids_durations  ):
-    '''pids_durations is a dictionary'''
-    

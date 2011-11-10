@@ -32,6 +32,8 @@ class TaskInstance:
 class InterruptHandler( TaskClass ):
     def __init__(self, interrupt_number, interrupt_duration, on_conclusion):
         TaskClass.__init__(self, "[INTERRUPT "+str(interrupt_number)+"]", interrupt_duration, on_conclusion)
+        assert type(interrupt_number)==int
+        self.number= interrupt_number
 
 class Interrupt( TaskInstance ):
     def __init__(self, handler):
