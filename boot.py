@@ -1,4 +1,5 @@
 import sys,os
+import random
 from kernel import Kernel
 from dispatcher import NoMoreProcesses
 from hardware.machine import Machine
@@ -9,6 +10,15 @@ MAX_CYCLES= 10**8 #run for a maximum of 10^8 cycles, for sanity's sake
 TRACE_FILE= "process_trace.txt"
 STAT_FILE= "statistics.txt"
 
+def start_program( program, os ):
+    pcb= os.process_manager.start_program( program )
+    program.pid= pcb.pid    #hack to save the pid of each program (for calculating statistics)
+    program.process_start_address= pcb.start_address    #hack for correctness tests
+    if not hasattr(program, "duration"):
+        program.duration=-1
+    program.duration+=1     #since the programs are added one instruction by the OS (to signal termination)
+
+
 def simulate(programs=[], config=None):
     if not config is None:
         io_times= config.iotimes
@@ -16,10 +26,16 @@ def simulate(programs=[], config=None):
         generator= program_generation.ProgramGenerator( config )
         print "generating and assembling programs (from config)"
         programs= generator.generate_initial_programs()
+        if hasattr(config, "processgenerate_interval"):
+            generate= True
+            generate_interval= config.processgenerate_interval
+            generate_prob= config.processgenerate_prob
+        else:
+            generate= False
     else:
         io_times=[100]
         runtime= MAX_CYCLES
-        generator= None
+        generate= False
     
     print "creating virtual hardware"
     number_of_ios= len(io_times)
@@ -31,14 +47,9 @@ def simulate(programs=[], config=None):
 
     print "creating processes"
     for program in programs:
-        pcb= my_os.process_manager.start_program( program )
-        program.pid= pcb.pid    #hack to save the pid of each program (for calculating statistics)
-        program.process_start_address= pcb.start_address    #hack for correctness tests
-        if not hasattr(program, "duration"):
-            program.duration=-1
-        program.duration+=1     #since the programs are added one instruction by the OS (to signal termination)
+        start_program(program, my_os)
     program_durations= dict([ (program.pid, program.duration) for program in programs])
-
+    
     print "starting simulation"
     my_os.kickstart()
 
@@ -48,6 +59,16 @@ def simulate(programs=[], config=None):
         if cycle== runtime:
             print "reached simulation runtime. Simulation stopped."
             break
+        if generate:
+            if cycle%generate_interval==0:
+                print "generate new process?"
+                if random.random()<generate_prob:
+                    print "roullete says yes!"
+                    program= generator.generate_program()
+                    start_program(program, my_os)
+                    program_durations[ program.pid]=program.duration
+                else:
+                    print "roullete says no :("
         try:
             my_pc.step()
         except NoMoreProcesses:

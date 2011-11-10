@@ -50,11 +50,11 @@ class ProgramGenerator:
 
     def generate_program(self, i=0):    #if i(ndex) is not specified, take config from first
         c= self.config
-        program_duration= int(random.normalvariate( c.meandev, c.standdev ))
         program_io_int= 1+c.iodevices +1+ c.process_ios[i] #timer int, io_devices int, and process termination syscall int
         cpu_burst= c.process_bursts[i]
         #print "generating program with duration",program_duration,"and cpu_burst",cpu_burst
         while True:
+            program_duration= int(random.normalvariate( c.meandev, c.standdev ))
             try:
                 program= generateProgram( program_duration, cpu_burst, program_io_int ) 
                 break
