@@ -129,9 +129,10 @@ class ProcessTracer:
 
         total_time= self.trace[-1].clock
         cpu_busy_clocks= sum([i.executed_clocks for i in processes])
-        io_busy_clocks= io_total_busy_clocks
+        io_busy_clocks= io_total_busy_clocks    #by io_device
+        import pdb;pdb.set_trace()
         cpu_usage= float(cpu_busy_clocks) / total_time
-        io_usage= float(io_busy_clocks) / total_time
+        io_usage= float(sum(io_busy_clocks)) / total_time   #sums all iodevices. permanent full usage on two io devices will result in io_usage==2.0  
         throughput= float( len(completed_processes) ) / total_time        #per time unit
         turnaround= float(sum( [c.turnaround() for c in completed_processes])) / len(processes)
         waiting_time= float(sum( [c.waiting_time for c in completed_processes])) / len(processes)
