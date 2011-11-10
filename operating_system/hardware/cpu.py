@@ -35,8 +35,9 @@ class TaskStateSegment:
             setattr(self, name, 0)
 
 class Cpu:
-    def __init__(self, memory):
+    def __init__(self, machine, memory):
         self.registers= Registers()
+        self.machine= machine
         self.memory= memory
         self.tss= None          #task state segment, keeps old cpu state when context switching
         self.interrupt_queue=[]     #current interrupts to process
@@ -123,7 +124,7 @@ class Cpu:
         try:
             interrupt= Interrupt( self.memory._read_interrupt_handler(interrupt_number) )
             self.interrupt_queue.append(interrupt)
-            from machine import INTERRUPT_PRIORITIES
+            INTERRUPT_PRIORITIES= self.machine.INTERRUPT_PRIORITIES
             self.interrupt_queue.sort( key= lambda i:INTERRUPT_PRIORITIES[i.task_class.number] )   #sort interrupts by priority
             self._save_tss()    #each time an interruption is executed, the TSS is saved
             log.debug("generated interrupt "+str(interrupt_number))

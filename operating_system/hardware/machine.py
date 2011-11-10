@@ -8,21 +8,20 @@ log.addHandler(hdlr)
 log.setLevel(logging.DEBUG)
 import cpu, timer, io_device, ram
 
-
-TIMER_INTERRUPT=        0
 MEMORY_SIZE= 100*ram.K
 
 class Machine:
     def __init__(self, io_devices_number, syscalls_number):
-        self.NUMBER_OF_IO_DEVICES= io_devices_number
-        self.NUMBER_OF_SYSCALLS= syscalls_number
-        self.NUMBER_OF_INTERRUPTS= 1 + self.NUMBER_OF_IO_DEVICES + self.NUMBER_OF_SYSCALLS
-        self.INTERRUPT_PRIORITIES= [2]+[0]*self.NUMBER_OF_IO_DEVICES+[1]*self.NUMBER_OF_SYSCALLS
+        self.TIMER_INTERRUPT=       0
+        self.NUMBER_OF_IO_DEVICES=  io_devices_number
+        self.NUMBER_OF_SYSCALLS=    syscalls_number
+        self.NUMBER_OF_INTERRUPTS=  1 + self.NUMBER_OF_IO_DEVICES + self.NUMBER_OF_SYSCALLS
+        self.INTERRUPT_PRIORITIES=  [2]+[0]*self.NUMBER_OF_IO_DEVICES+[1]*self.NUMBER_OF_SYSCALLS
 
         initial_interrupt_vector= [cpu.InterruptHandler(n, 0, lambda:None) for n in range(self.NUMBER_OF_INTERRUPTS)]
         self.ram= ram.RAM( MEMORY_SIZE )
-        self.cpu= cpu.Cpu( self.ram )
-        self.timer= timer.Timer( self.cpu, TIMER_INTERRUPT )
+        self.cpu= cpu.Cpu( self, self.ram )
+        self.timer= timer.Timer( self.cpu, self.TIMER_INTERRUPT )
         self.ios= [io_device.IO( self.cpu, self.IO_INTERRUPT(x)) for x in range(self.NUMBER_OF_IO_DEVICES)]
         
     def step(self):
