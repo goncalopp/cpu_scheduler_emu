@@ -4,7 +4,7 @@ from machine import Machine
 
 
 for test in verification_programs.tests:
-    my_pc= Machine()
+    my_pc= Machine(0,0)
     program= test.program
     address= ram.PROGRAM_MEMORY_START
     for i in xrange(0, len(program)):

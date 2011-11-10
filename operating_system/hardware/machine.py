@@ -8,26 +8,22 @@ log.addHandler(hdlr)
 log.setLevel(logging.DEBUG)
 import cpu, timer, io_device, ram
 
-NUMBER_OF_IO_DEVICES=   1
-NUMBER_OF_SYSCALLS=     NUMBER_OF_IO_DEVICES + 1 #end_process
+
 TIMER_INTERRUPT=        0
-def IO_INTERRUPT(x):
-    assert 0<=x<NUMBER_OF_IO_DEVICES
-    return 1+x
-def SYSCALL_INTERRUPT(x):
-    assert 0<=x<=NUMBER_OF_SYSCALLS
-    return 1+NUMBER_OF_IO_DEVICES+x
-NUMBER_OF_INTERRUPTS= 1 + NUMBER_OF_IO_DEVICES + NUMBER_OF_SYSCALLS
-INTERRUPT_PRIORITIES= [2]+[0]*NUMBER_OF_IO_DEVICES+[1]*NUMBER_OF_SYSCALLS
 MEMORY_SIZE= 100*ram.K
 
 class Machine:
-    def __init__(self):
-        initial_interrupt_vector= [cpu.InterruptHandler(n, 0, lambda:None) for n in range(NUMBER_OF_INTERRUPTS)]
+    def __init__(self, io_devices_number, syscalls_number):
+        self.NUMBER_OF_IO_DEVICES= io_devices_number
+        self.NUMBER_OF_SYSCALLS= syscalls_number
+        self.NUMBER_OF_INTERRUPTS= 1 + self.NUMBER_OF_IO_DEVICES + self.NUMBER_OF_SYSCALLS
+        self.INTERRUPT_PRIORITIES= [2]+[0]*self.NUMBER_OF_IO_DEVICES+[1]*self.NUMBER_OF_SYSCALLS
+
+        initial_interrupt_vector= [cpu.InterruptHandler(n, 0, lambda:None) for n in range(self.NUMBER_OF_INTERRUPTS)]
         self.ram= ram.RAM( MEMORY_SIZE )
         self.cpu= cpu.Cpu( self.ram )
         self.timer= timer.Timer( self.cpu, TIMER_INTERRUPT )
-        self.ios= [io_device.IO( self.cpu, IO_INTERRUPT(x)) for x in range(NUMBER_OF_IO_DEVICES)]
+        self.ios= [io_device.IO( self.cpu, self.IO_INTERRUPT(x)) for x in range(self.NUMBER_OF_IO_DEVICES)]
         
     def step(self):
         #time.sleep(0.01)    #for making sense of log files
@@ -54,3 +50,11 @@ class Machine:
         instruction= self.ram.raw_read( self.cpu.registers.PC )
         separator= "--------------------------------------------------"
         return "{separator}\n{memory}\n{registers}\n{instruction}".format(**locals())
+
+    def IO_INTERRUPT(self, x):
+        assert 0<=x<self.NUMBER_OF_IO_DEVICES
+        return 1+x
+
+    def SYSCALL_INTERRUPT(self, x):
+        assert 0<=x<=self.NUMBER_OF_SYSCALLS
+        return 1+self.NUMBER_OF_IO_DEVICES+x
