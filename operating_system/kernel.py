@@ -23,28 +23,29 @@ class Kernel:
     def __init__(self, machine):
         self.machine= machine
         self._initialize_subsystems()
-        self._initialize_interrupt_handlers()
         log.debug("OS initialized")
 
     def _initialize_subsystems(self):
         self.memory_allocator=  MemoryAllocator         (self)
-        self.loader=            Loader                  (self)
-        self.io_drivers= [IODriver(self) for x in xrange(machine.NUMBER_OF_IO_DEVICES)]
+        self.io_drivers= [IODriver(self) for x in xrange(self.machine.NUMBER_OF_IO_DEVICES)]
         self.timer_driver=      TimerDriver             (self)
         self.process_manager=   ProcessManager          (self)
         self.scheduler=         StrideScheduler         (self)
         self.dispatcher=        Dispatcher              (self)
+        self._initialize_interrupt_handlers()
+        self.loader=            Loader                  (self)
         self.timer_driver.set_callback( self.dispatcher.swap_processes )   #execute on timer interrupt
         if USE_IDLE_PROCESS:
             IdleProcessScheduler    (self)
 
     def _initialize_interrupt_handlers(self):
+        self.interrupt_handlers= interrupts.InterruptHandlerGroup(self)
         my_interrupt_handlers= \
         [self.timer_driver.timer_interrupt_handler,  self.dispatcher.remove_current_process]+\
-        [self.io_drivers[x].io_interrupt_handler for x in xrange(machine.NUMBER_OF_IO_DEVICES)]+\
-        [self.io_drivers[x].request_io for x in xrange(machine.NUMBER_OF_IO_DEVICES)]
-        mih, il= my_interrupt_handlers, interrupts.interrupt_list
-        interrupts.InterruptHandlerGroup( self, self.machine, dict(zip(il, mih)))
+        [self.io_drivers[x].io_interrupt_handler for x in xrange(self.machine.NUMBER_OF_IO_DEVICES)]+\
+        [self.io_drivers[x].request_io for x in xrange(self.machine.NUMBER_OF_IO_DEVICES)]
+        mih, il= my_interrupt_handlers, self.interrupt_handlers.interrupt_list
+        self.interrupt_handlers.set_handlers( dict(zip(il, mih)))
 
     def get_system_ticks(self):
         return self.machine.get_clock_ticks()
