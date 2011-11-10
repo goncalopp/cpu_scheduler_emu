@@ -8,17 +8,17 @@ log.addHandler(hdlr)
 log.setLevel(logging.DEBUG)
 import cpu, timer, io_device, ram
 
-NUMBER_OF_INTERRUPTS= 6
-
-TIMER_INTERRUPT=     0
-IO_INTERRUPT=        1
-SYSCALL_INTERRUPT_1= 2
-SYSCALL_INTERRUPT_2= 3
-SYSCALL_INTERRUPT_3= 4
-SYSCALL_INTERRUPT_4= 5
-
-INTERRUPT_PRIORITIES= [5,0,1,2,3,4]
-
+NUMBER_OF_IO_DEVICES=   5
+NUMBER_OF_SYSCALLS=     4
+TIMER_INTERRUPT=        0
+def IO_INTERRUPT(x):
+    assert 0<=x<NUMBER_OF_IO_DEVICES
+    return 1+x
+def SYSCALL_INTERRUPT(x):
+    assert 0<=x<=NUMBER_OF_SYSCALLS
+    return 1+NUMBER_OF_IO_DEVICES+x
+NUMBER_OF_INTERRUPTS= 1 + NUMBER_OF_IO_DEVICES + NUMBER_OF_SYSCALLS
+INTERRUPT_PRIORITIES= [2]+[0]*NUMBER_OF_IO_DEVICES+[1]*NUMBER_OF_SYSCALLS
 MEMORY_SIZE= 100*ram.K
 
 class Machine:
@@ -27,13 +27,13 @@ class Machine:
         self.ram= ram.RAM( MEMORY_SIZE )
         self.cpu= cpu.Cpu( self.ram )
         self.timer= timer.Timer( self.cpu, TIMER_INTERRUPT )
-        self.io= io_device.IO( self.cpu, IO_INTERRUPT)
+        self.ios= [io_device.IO( self.cpu, IO_INTERRUPT(x)) for x in range(NUMBER_OF_IO_DEVICES)]
         
     def step(self):
         #time.sleep(0.01)    #for making sense of log files
         self.cpu.step()
         self.timer.step()
-        self.io.step()
+        [io.step() for io in self.ios]
 
     def set_interrupt_handler( self, *args, **kwargs ):
         self.cpu.set_interrupt_handler( *args, **kwargs)
