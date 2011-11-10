@@ -2,7 +2,7 @@ from hardware.cpu import TaskStateSegment
 import logging
 log= logging.getLogger('os')
 
-RUNNING, RUNNABLE, BLOCKED, TERMINATED= range(4)
+CREATED, RUNNING, RUNNABLE, BLOCKED, TERMINATED= range(5)
 
 class PCB:
     '''Process Control Block'''
@@ -15,7 +15,7 @@ class PCB:
         self.tss.PC= pc                     #address of first instruction
         self.sched_info=sched_info          #sheduling info
         self.changestate_callback= changestate_callback #will be called on state change
-        self.state= None
+        self.state= CREATED
         self.changeState( RUNNABLE, just_started= True )
 
     def changeState( self, new_state, just_started= False):
