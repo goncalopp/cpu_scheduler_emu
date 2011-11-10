@@ -143,6 +143,16 @@ class ProcessTracer:
         s+= "\n".join([str(p) for p in pi.values() if p.pid!=0])
         return s
 
+    def plot(self):
+        assert self.processed
+        from Gnuplot import Gnuplot
+        g= Gnuplot()
+        g('set style data linespoints')
+        all_pids= set([cs.pid for cs in self.trace])
+        process_data= [filter(lambda s:s.pid==pid, self.trace) for pid in all_pids]
+        data=[ [(state.clock, state.clocks_done) for state in states] for states in process_data]
+        g.plot(*data)
+        raw_input("Press any key to close...")
 
     def get_pid_trace(self, pid):
         states= filter( lambda sc: sc.pid==pid, self.trace)

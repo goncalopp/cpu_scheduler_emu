@@ -53,6 +53,11 @@ def simulate(programs, io_operation_duration=100, sim_runtime=None):
     #print stats[:200]   #only first 200 chars
     open(STAT_FILE, "w").write( stats )
     print "Additional execution information can be found in the debug logs (os.log.tsv, hardware.log.tsv)"
+    print "plotting process progress graph"
+    try:
+        tracer.plot()
+    except:
+        print "Error showing plot. is python-gnuplot not installed? Continuing happily"
     return my_pc, my_os #needed for correctness testing, since it checks final ram contents
 
 
