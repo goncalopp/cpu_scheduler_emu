@@ -27,7 +27,7 @@ class Kernel:
 
     def _initialize_subsystems(self):
         self.memory_allocator=  MemoryAllocator         (self)
-        self.io_drivers= [IODriver(self) for x in xrange(self.machine.NUMBER_OF_IO_DEVICES)]
+        self.io_drivers= [IODriver(self, self.machine.ios[x]) for x in xrange(self.machine.NUMBER_OF_IO_DEVICES)]
         self.timer_driver=      TimerDriver             (self)
         self.process_manager=   ProcessManager          (self)
         self.scheduler=         StrideScheduler         (self)

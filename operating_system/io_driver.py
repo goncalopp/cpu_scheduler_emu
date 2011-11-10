@@ -4,9 +4,10 @@ from pcb import RUNNABLE, BLOCKED
 log= logging.getLogger('os')
 
 class IODriver:
-    def __init__(self, os):
+    def __init__(self, os, device):
         log.debug("initializing IO Driver")
         self.os= os
+        self.device= device
         self.pcb_queue=[]   #processes waiting for I/O request generation
         self.waiting= False #waiting for response to I/O request?
 
@@ -37,4 +38,4 @@ class IODriver:
         assert self.waiting==False
         assert len(self.pcb_queue)>=1
         self.waiting= True
-        self.os.machine.io.io_request()
+        self.device.io_request()
