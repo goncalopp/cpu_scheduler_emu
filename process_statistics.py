@@ -121,7 +121,7 @@ class ProcessTracer:
             last_states[pid]= s
         return process_info
 
-    def get_statistics(self, io_operation_duration, programs_durations):
+    def get_statistics(self, io_total_busy_clocks, programs_durations):
         pi= self.calculate_process_info( programs_durations )
         processes= [p for p in pi.values() if p.pid!=0] #don't include idle process
         completed_processes= [i for i in processes if i.completed()]
@@ -129,8 +129,7 @@ class ProcessTracer:
 
         total_time= self.trace[-1].clock
         cpu_busy_clocks= sum([i.executed_clocks for i in processes])
-        io_busy_clocks= io_operation_duration*total_io_operations   # meh...
-        
+        io_busy_clocks= io_total_busy_clocks
         cpu_usage= float(cpu_busy_clocks) / total_time
         io_usage= float(io_busy_clocks) / total_time
         throughput= float( len(completed_processes) ) / total_time        #per time unit

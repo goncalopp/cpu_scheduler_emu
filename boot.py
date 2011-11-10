@@ -49,7 +49,7 @@ def simulate(programs, io_operation_duration=100, sim_runtime=None):
     #print trace
     open(TRACE_FILE, "w").write( trace )
     print "writing statistics to "+STAT_FILE
-    stats= tracer.get_statistics(io_operation_duration, program_durations)
+    stats= tracer.get_statistics(my_pc.io.used_clocks, program_durations)
     #print stats[:200]   #only first 200 chars
     open(STAT_FILE, "w").write( stats )
     print "Additional execution information can be found in the debug logs (os.log.tsv, hardware.log.tsv)"
