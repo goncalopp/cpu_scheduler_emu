@@ -143,7 +143,7 @@ class ProcessTracer:
         s+= "\n".join([str(p) for p in pi.values() if p.pid!=0])
         return s
 
-    def plot(self, show=True, to_file=None):
+    def plot(self, plot_idle=False, show=True, to_file=None):
         assert self.processed
         from Gnuplot import Gnuplot
         g= Gnuplot()
@@ -151,6 +151,8 @@ class ProcessTracer:
         all_pids= set([cs.pid for cs in self.trace])
         process_data= [filter(lambda s:s.pid==pid, self.trace) for pid in all_pids]
         data=[ [(state.clock, state.clocks_done) for state in states] for states in process_data]
+        if not plot_idle:
+            data[0]=[(0,0)]
         if show:
             g.plot(*data)
         if not to_file is None:
