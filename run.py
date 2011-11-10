@@ -26,7 +26,7 @@ def run_sim_from_config( cfg_file ):
     cfg= config.configFromFile( os.path.join( CONFIG_DIR, cfg_file ))
     print "generating and assembling programs (from config file)"
     programs= program_generation.generateProgramsFromConfig(cfg)
-    boot.simulate(programs, cfg.iotime)
+    boot.simulate(programs, cfg.iotime, cfg.runtime)
 
 def run_correctness_tests():
     print "running correctness tests"
