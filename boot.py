@@ -8,10 +8,13 @@ MAX_CYCLES= 10**8 #run for a maximum of 10^8 cycles, for sanity's sake
 TRACE_FILE= "process_trace.txt"
 STAT_FILE= "statistics.txt"
 
-def simulate(programs, io_operation_duration=100, sim_runtime=None):
+def simulate(programs, io_times=[100], sim_runtime=None):
     print "creating virtual hardware"
-    my_pc= Machine()
-    my_pc.io.set_io_operation_time( io_operation_duration )
+    number_of_ios= len(io_times)
+    number_of_syscalls= number_of_ios+1
+    my_pc= Machine( number_of_ios, number_of_syscalls )
+    for i,time in enumerate(io_times):
+        my_pc.ios[i].set_io_operation_time( time )
     print '"bootstraping" OS'
     my_os= Kernel( my_pc )
     tracer= process_statistics.ProcessTracer( my_os )   #traces processes
@@ -49,7 +52,7 @@ def simulate(programs, io_operation_duration=100, sim_runtime=None):
     #print trace
     open(TRACE_FILE, "w").write( trace )
     print "writing statistics to "+STAT_FILE
-    stats= tracer.get_statistics(my_pc.io.used_clocks, program_durations)
+    stats= tracer.get_statistics( [io.used_clocks for io in my_pc.ios], program_durations)
     #print stats[:200]   #only first 200 chars
     open(STAT_FILE, "w").write( stats )
     print "Additional execution information can be found in the debug logs (os.log.tsv, hardware.log.tsv)"

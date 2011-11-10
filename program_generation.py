@@ -27,7 +27,7 @@ def burn_cycles(n):
         #even number
         return "NOOP\n"+instructions
 
-def generateProgram( program_duration, cpu_burst ):
+def generateProgram( program_duration, cpu_burst, io_int_number ):
     cpu_burst -=1   #since 1 IO operation consumes a clock
     instructions= ""
     left= program_duration
@@ -37,7 +37,7 @@ def generateProgram( program_duration, cpu_burst ):
         left -=burn
         if not left>0:
             break
-        instructions+="INT 2\n"
+        instructions+="INT "+str(io_int_number)+"\n"
         left -=1    #io operation burns one cpu clock too
     assert left==0
     return programFromString(instructions)
@@ -49,10 +49,11 @@ def generateProgramsFromConfig( c ):
     for i in xrange(c.numprocess):
         while True:
             program_duration= int(random.normalvariate( c.meandev, c.standdev ))
-            cpu_burst= c.bursts[i]
+            program_io_int= 1+c.iodevices +1+ c.process_ios[i] #timer int, io_devices int, and process termination syscall int
+            cpu_burst= c.process_bursts[i]
             #print "generating program with duration",program_duration,"and cpu_burst",cpu_burst
             try:
-                program= generateProgram( program_duration, cpu_burst )
+                program= generateProgram( program_duration, cpu_burst, program_io_int ) 
                 break
             except CannotGenerateProgram:
                 if c.standdev==0:
