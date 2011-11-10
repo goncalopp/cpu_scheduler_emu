@@ -6,6 +6,10 @@ log= logging.getLogger('os')
 class NoMoreRunnableProcesses( Exception ):
     '''no more processes are runnable atm'''
     pass
+    
+class PCBNotInScheduler( Exception ):
+    '''Process is not in the scheduler '''
+    pass
 
 class SchedulingInfo:
     def __init__(self):
@@ -168,6 +172,22 @@ class OOneScheduler(SignalledScheduler):
             pcb.sched_info.quantum *= (1/0.9)
             print pcb, pcb.sched_info.priority, pcb.sched_info.quantum
 
+    def remove(self, pcb):
+        found = 0
+        for l in self.active:
+            if pcb in l:
+                l.remove(pcb)
+                found = 1
+                break
+        if not found:
+            for l in self.expired:
+                if pcb in l:
+                    l.remove(pcb)
+                    found = 1
+                    break
+            if not found:
+                PCBNotInScheduler()
+
 class StrideScheduler(SignalledScheduler):
     INFO= StrideSchedInfo
     def __init__(self, os):
@@ -214,6 +234,9 @@ class StrideScheduler(SignalledScheduler):
             return pcb
         else:
             raise NoMoreRunnableProcesses()
+
+    def remove(self, pcb):
+        self.runqueue.remove(pcb)
 
     def _signal_io_block(self, pcb):
         SignalledScheduler._signal_io_block(self, pcb)
