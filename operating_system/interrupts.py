@@ -2,23 +2,20 @@ import logging
 log= logging.getLogger('os')
 from hardware import machine
 
-interrupt_list= ["timer","io", "syscall_io_driver", "syscall_end_process"]
+interrupt_list= ["timer", "syscall_end_process"]+ \
+["io"+str(x) for x in range(machine.NUMBER_OF_IO_DEVICES)]+ \
+["syscall_io_driver"+str(x) for x in range(machine.NUMBER_OF_IO_DEVICES)]
 
 interrupt_numbers=  \
     {
     "timer":                machine.TIMER_INTERRUPT,
-    "io":                   machine.IO_INTERRUPT,
-    "syscall_io_driver":    machine.SYSCALL_INTERRUPT_1,
-    "syscall_end_process":  machine.SYSCALL_INTERRUPT_2,
+    "syscall_end_process":  machine.SYSCALL_INTERRUPT(0),
     }
+interrupt_numbers.update( dict( [("io"+str(x), machine.IO_INTERRUPT(x)) for x in range(machine.NUMBER_OF_IO_DEVICES)]))
+interrupt_numbers.update( dict( [("syscall_io_driver"+str(x), machine.SYSCALL_INTERRUPT(x+1)) for x in range(machine.NUMBER_OF_IO_DEVICES)]))
 
-interrupt_durations= \
-    {
-    "timer":                0,
-    "io":                   0,
-    "syscall_io_driver":    0,
-    "syscall_end_process":  0,
-    }
+
+interrupt_durations= dict( [(k,0) for k in interrupt_list] )    #all 0
     
 class InterruptHandlerProblem( Exception ):
     pass

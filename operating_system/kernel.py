@@ -29,7 +29,7 @@ class Kernel:
     def _initialize_subsystems(self):
         self.memory_allocator=  MemoryAllocator         (self)
         self.loader=            Loader                  (self)
-        self.io_driver=         IODriver                (self)
+        self.io_drivers= [IODriver(self) for x in xrange(machine.NUMBER_OF_IO_DEVICES)]
         self.timer_driver=      TimerDriver             (self)
         self.process_manager=   ProcessManager          (self)
         self.scheduler=         StrideScheduler         (self)
@@ -39,12 +39,10 @@ class Kernel:
             IdleProcessScheduler    (self)
 
     def _initialize_interrupt_handlers(self):
-        my_interrupt_handlers= [
-                            self.timer_driver.timer_interrupt_handler,
-                            self.io_driver.io_interrupt_handler,
-                            self.io_driver.request_io,
-                            self.dispatcher.remove_current_process,
-                            ]
+        my_interrupt_handlers= \
+        [self.timer_driver.timer_interrupt_handler,  self.dispatcher.remove_current_process]+\
+        [self.io_drivers[x].io_interrupt_handler for x in xrange(machine.NUMBER_OF_IO_DEVICES)]+\
+        [self.io_drivers[x].request_io for x in xrange(machine.NUMBER_OF_IO_DEVICES)]
         mih, il= my_interrupt_handlers, interrupts.interrupt_list
         interrupts.InterruptHandlerGroup( self, self.machine, dict(zip(il, mih)))
 
