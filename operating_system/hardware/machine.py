@@ -8,8 +8,8 @@ log.addHandler(hdlr)
 log.setLevel(logging.DEBUG)
 import cpu, timer, io_device, ram
 
-NUMBER_OF_IO_DEVICES=   5
-NUMBER_OF_SYSCALLS=     4
+NUMBER_OF_IO_DEVICES=   1
+NUMBER_OF_SYSCALLS=     NUMBER_OF_IO_DEVICES + 1 #end_process
 TIMER_INTERRUPT=        0
 def IO_INTERRUPT(x):
     assert 0<=x<NUMBER_OF_IO_DEVICES
