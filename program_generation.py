@@ -42,16 +42,19 @@ def generateProgram( program_duration, cpu_burst, io_int_number ):
     assert left==0
     return programFromString(instructions)
 
-def generateProgramsFromConfig( c ):
+class ProgramGenerator:
     '''generates programs (sequences of instructions) from simulation configuration information'''
-    assert isinstance(c, config.SimConfig)
-    programs=[]
-    for i in xrange(c.numprocess):
+    def __init__(self, cfg ):
+        assert isinstance(cfg, config.SimConfig)
+        self.config= cfg
+
+    def generate_program(self, i=0):    #if i(ndex) is not specified, take config from first
+        c= self.config
+        program_duration= int(random.normalvariate( c.meandev, c.standdev ))
+        program_io_int= 1+c.iodevices +1+ c.process_ios[i] #timer int, io_devices int, and process termination syscall int
+        cpu_burst= c.process_bursts[i]
+        #print "generating program with duration",program_duration,"and cpu_burst",cpu_burst
         while True:
-            program_duration= int(random.normalvariate( c.meandev, c.standdev ))
-            program_io_int= 1+c.iodevices +1+ c.process_ios[i] #timer int, io_devices int, and process termination syscall int
-            cpu_burst= c.process_bursts[i]
-            #print "generating program with duration",program_duration,"and cpu_burst",cpu_burst
             try:
                 program= generateProgram( program_duration, cpu_burst, program_io_int ) 
                 break
@@ -60,5 +63,7 @@ def generateProgramsFromConfig( c ):
                     raise CannotGenerateProgram("I cannot generate a program with this number of cycles, and standdev is 0...")
                 #print "couldn't generate program with given characteristics, trying again"
         program.duration= program_duration #hack to save the program duration, for process statistics
-        programs.append( program )
-    return programs
+        return program
+
+    def generate_initial_programs(self):
+        return [self.generate_program(x) for x in range(self.config.numprocess)]

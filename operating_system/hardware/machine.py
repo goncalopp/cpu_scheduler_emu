@@ -11,7 +11,7 @@ import cpu, timer, io_device, ram
 MEMORY_SIZE= 100*ram.K
 
 class Machine:
-    def __init__(self, io_devices_number, syscalls_number):
+    def __init__(self, io_devices_number, syscalls_number, set_io_durations_to=None):
         self.TIMER_INTERRUPT=       0
         self.NUMBER_OF_IO_DEVICES=  io_devices_number
         self.NUMBER_OF_SYSCALLS=    syscalls_number
@@ -23,6 +23,9 @@ class Machine:
         self.cpu= cpu.Cpu( self, self.ram )
         self.timer= timer.Timer( self.cpu, self.TIMER_INTERRUPT )
         self.ios= [io_device.IO( self.cpu, self.IO_INTERRUPT(x)) for x in range(self.NUMBER_OF_IO_DEVICES)]
+        if not set_io_durations_to is None:
+            assert len(set_io_durations_to)==self.NUMBER_OF_IO_DEVICES
+            [io.set_io_operation_time(time) for io,time in zip(self.ios, set_io_durations_to)]
         
     def step(self):
         #time.sleep(0.01)    #for making sense of log files

@@ -2,7 +2,8 @@ CONFIG_DIR= "configs"
 
 import sys, os
 sys.path.append("operating_system")
-import boot, config, program_generation
+import boot
+import config
 
 
 def cli_choice(question, answers, return_index=False):
@@ -24,16 +25,14 @@ def cli_choice(question, answers, return_index=False):
 def run_sim_from_config( cfg_file ):
     print "parsing config file"
     cfg= config.configFromFile( os.path.join( CONFIG_DIR, cfg_file ))
-    print "generating and assembling programs (from config file)"
-    programs= program_generation.generateProgramsFromConfig(cfg)
-    boot.simulate(programs, cfg.iotimes, cfg.runtime)
+    boot.simulate( config=cfg )
 
 def run_correctness_tests():
     print "running correctness tests"
     from hardware import verification_programs
     tests= verification_programs.tests
     programs= [t.program for t in tests]
-    pc, os= boot.simulate( programs )
+    pc, os= boot.simulate( programs=programs )
     for test in tests:
         test.verify( pc.ram, test.program.process_start_address )
         print "test",test.name,"passed!"    #since if it doesn't, a exception is raised

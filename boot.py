@@ -3,18 +3,28 @@ from kernel import Kernel
 from dispatcher import NoMoreProcesses
 from hardware.machine import Machine
 import process_statistics
+import program_generation
 
 MAX_CYCLES= 10**8 #run for a maximum of 10^8 cycles, for sanity's sake
 TRACE_FILE= "process_trace.txt"
 STAT_FILE= "statistics.txt"
 
-def simulate(programs, io_times=[100], sim_runtime=None):
+def simulate(programs=[], config=None):
+    if not config is None:
+        io_times= config.iotimes
+        runtime= config.runtime
+        generator= program_generation.ProgramGenerator( config )
+        print "generating and assembling programs (from config)"
+        programs= generator.generate_initial_programs()
+    else:
+        io_times=[100]
+        runtime= MAX_CYCLES
+        generator= None
+    
     print "creating virtual hardware"
     number_of_ios= len(io_times)
     number_of_syscalls= number_of_ios+1
-    my_pc= Machine( number_of_ios, number_of_syscalls )
-    for i,time in enumerate(io_times):
-        my_pc.ios[i].set_io_operation_time( time )
+    my_pc= Machine( number_of_ios, number_of_syscalls, io_times )
     print '"bootstraping" OS'
     my_os= Kernel( my_pc )
     tracer= process_statistics.ProcessTracer( my_os )   #traces processes
@@ -25,7 +35,7 @@ def simulate(programs, io_times=[100], sim_runtime=None):
         program.pid= pcb.pid    #hack to save the pid of each program (for calculating statistics)
         program.process_start_address= pcb.start_address    #hack for correctness tests
         if not hasattr(program, "duration"):
-            program.duration=0
+            program.duration=-1
         program.duration+=1     #since the programs are added one instruction by the OS (to signal termination)
     program_durations= dict([ (program.pid, program.duration) for program in programs])
 
@@ -35,7 +45,7 @@ def simulate(programs, io_times=[100], sim_runtime=None):
     for cycle in xrange( MAX_CYCLES): 
         if cycle%1000==0:
             print "executing simulation: cycle ", cycle
-        if cycle== sim_runtime:
+        if cycle== runtime:
             print "reached simulation runtime. Simulation stopped."
             break
         try:
