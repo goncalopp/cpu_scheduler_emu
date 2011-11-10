@@ -59,7 +59,7 @@ class RamBlockList:
         elif len(following)==1:    #block is immediatelly before "following"
             following[0].start= block.start    #add returned block to pool
         elif len(previous)==1:    #block is immediatelly after to "previous"
-            previous[0].start= block.start    #add returned block to pool
+            previous[0].end= block.end    #add returned block to pool
         else:
             self.blocks.append(block)   #block is not contiguous to current blocks
 
@@ -89,6 +89,7 @@ class MemoryAllocator:
         if len(allocateds)!=1:
             raise FreeUnallocatedMemory()
         self.bl.insert( allocateds[0] )
+        self.allocated_blocks.remove(allocateds[0])
 
     def set_callback( self, f ):
         assert callable(f)
@@ -97,3 +98,4 @@ class MemoryAllocator:
     def timer_interrupt_handler(self):
         log.debug("handling interrupt")
         self.callback()
+
