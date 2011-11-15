@@ -133,8 +133,11 @@ class ProcessTracer:
         cpu_usage= float(cpu_busy_clocks) / total_time
         io_usage= float(sum(io_busy_clocks)) / total_time   #sums all iodevices. permanent full usage on two io devices will result in io_usage==2.0  
         throughput= float( len(completed_processes) ) / total_time        #per time unit
-        turnaround= float(sum( [c.turnaround() for c in completed_processes])) / len(processes)
-        waiting_time= float(sum( [c.waiting_time for c in completed_processes])) / len(processes)
+        try:
+            turnaround= float(sum( [c.turnaround() for c in completed_processes])) / len(completed_processes)
+        except:
+            turnaround= 0;
+        waiting_time= float(sum( [c.waiting_time for c in processes])) / len(processes)
         s="Global (mean or total) Statistics:"+"\n"
         for k in ("total_time", "cpu_usage", "io_usage", "throughput", "turnaround", "waiting_time"):
             s+= k+"\t"+str(locals()[k])+"\n"
