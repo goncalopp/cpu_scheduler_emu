@@ -1,1 +1,20 @@
-please run "run.py"
+To test, please run the interactive command **run.py**
+
+This program simulates and compares the performance of various CPU scheduling algorithms, including RoundRobin scheduler, O(1) scheduler and stride scheduling.
+
+It does this by emulating, in pure python, multiple components of a virtual machine, including:
+
+ - Hardware
+   - CPU (multiple opcodes, context switching)
+   - RAM
+   - A hardware timer
+   - A I/O device ("hard disk")
+   - A PIC (Programmable Interrupt Controller)
+
+ - A primitive "Operating System"
+   - Relocating Program Loader
+   - I/O and timer drivers
+   - Process Manager (Process Control Blocks, dispatcher)
+   - Multiple CPU scheduling algorithms
+
+It also includes some sample programs in  "assembly" (Fibonacci, sum of natural numbers), a tool to generate ("assembly") programs with varying I/O behaviour and tools for automatically loading various multiprocess scenarios and analysing and graphing the process progress and resulting performance (using python-gnuplot).
